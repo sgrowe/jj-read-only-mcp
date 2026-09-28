@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::OnceLock;
 
-use rmcp::model::CallToolRequestParams;
+use rmcp::model::{CallToolRequestParams, Tool};
 use rmcp::serde_json::Value;
 use rmcp::service::RunningService;
 use rmcp::transport::TokioChildProcess;
@@ -143,9 +143,21 @@ impl Server {
         text
     }
 
+    /// The server's tools, as the client receives them.
+    pub async fn tools(&self) -> Vec<Tool> {
+        self.0.list_all_tools().await.unwrap()
+    }
+
     /// The server's tools, as pretty JSON.
     pub async fn tools_json(&self) -> String {
-        let tools = self.0.list_all_tools().await.unwrap();
-        rmcp::serde_json::to_string_pretty(&tools).unwrap()
+        rmcp::serde_json::to_string_pretty(&self.tools().await).unwrap()
+    }
+
+    /// The server's instructions, from its initialize response.
+    pub fn instructions(&self) -> String {
+        let info = self.0.peer_info().expect("no initialize response");
+        info.instructions
+            .clone()
+            .expect("server sent no instructions")
     }
 }

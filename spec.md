@@ -89,6 +89,7 @@ app/permissions.ts     | 45 +++++++++++++++++++++++++++++++++++----------
 
 - Integration tests clone `https://github.com/sgrowe/aider-script` (abandoned, never changes) once per run into cargo's temp dir. Each test spawns the server binary with the rmcp client over stdio.
 - Tests run with an empty `JJ_CONFIG`, `TZ=UTC` and a fake `HOME` (so jj's per-repo config goes in cargo's temp dir, not the user's home), and use `insta` snapshots. They use stable refs (`main`, which is also tag `v0.1.5`, and the untracked `ci_update@origin`), never `@`.
+- `token_counts` snapshots the approximate token cost of the instructions and each tool's `{name, description, inputSchema}` (tiktoken `o200k_base`, annotations excluded). Use it to compare changes, not as exact Claude counts.
 - `does_not_write_to_the_repo` runs every tool against a colocated repo with an unsnapshotted working-copy change, and checks the op log is unchanged.
 - CI runs the tests against a matrix of jj versions (currently `0.45.1`), installed from GitHub release binaries. The Rust toolchain is pinned in `rust-toolchain.toml`.
 - Lints: clippy `pedantic`, and `unsafe_code = "forbid"`.

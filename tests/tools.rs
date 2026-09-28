@@ -14,6 +14,54 @@ async fn lists_tools() {
     assert_snap!(server.tools_json().await);
 }
 
+/// Approximate token cost of what the model sees: the instructions, and each
+/// tool's name, description and input schema (not its annotations).
+#[tokio::test]
+async fn token_counts() {
+    use std::fmt::Write as _;
+
+    let server = Server::spawn().await;
+    let bpe = tiktoken_rs::o200k_base_singleton();
+    let count = |text: &str| bpe.encode_ordinary(text).len();
+
+    // (name, description, schema, total)
+    let instructions = count(&server.instructions());
+    let mut rows = vec![("instructions".to_owned(), instructions, None, instructions)];
+    for tool in server.tools().await {
+        let description = tool.description.as_deref().unwrap_or_default();
+        let schema = rmcp::serde_json::to_string(&tool.input_schema).unwrap();
+        let definition = json!({
+            "name": &tool.name,
+            "description": description,
+            "inputSchema": &tool.input_schema,
+        });
+        rows.push((
+            tool.name.to_string(),
+            count(description),
+            Some(count(&schema)),
+            count(&definition.to_string()),
+        ));
+    }
+
+    let width = rows.iter().map(|row| row.0.len()).max().unwrap();
+    let mut table = String::from(
+        "Approximate tokens (tiktoken o200k_base). Claude's tokenizer differs,\n\
+         so use these to compare changes, not as exact costs.\n\n",
+    );
+    writeln!(table, "{:width$}  description  schema  total", "").unwrap();
+    for (name, description, schema, total) in &rows {
+        let schema = schema.map_or_else(|| "-".to_owned(), |schema| schema.to_string());
+        writeln!(
+            table,
+            "{name:width$}  {description:>11}  {schema:>6}  {total:>5}"
+        )
+        .unwrap();
+    }
+    let total: usize = rows.iter().map(|row| row.3).sum();
+    writeln!(table, "{:width$}  {total:>26}", "total").unwrap();
+    assert_snap!(table);
+}
+
 #[tokio::test]
 async fn log() {
     let server = Server::spawn().await;

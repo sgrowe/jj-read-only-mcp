@@ -1,16 +1,17 @@
 //! Runs each tool against a clone of the fixture repo. Uses `main` (the same
-//! commit as tag `v0.1.5`) and `ci_update@origin`, never `@`.
+//! commit as tag `v0.1.5`) and `ci_update@origin`, never `@`. Tests that need
+//! their own repo make one in a temp dir.
 
 #[macro_use]
 mod common;
 
-use common::{Server, server_command};
+use common::{Server, jj, server_command};
 use rmcp::serde_json::json;
 
 #[tokio::test]
 async fn lists_tools() {
     let server = Server::spawn().await;
-    assert_snap!(server.tool_names().await.join("\n"));
+    assert_snap!(server.tools_json().await);
 }
 
 #[tokio::test]
@@ -160,14 +161,14 @@ async fn no_output() {
 #[tokio::test]
 async fn evolog() {
     let server = Server::spawn().await;
-    assert_snap!(server.ok("jj_evolog", json!({"revision": "main"})).await);
+    assert_snap!(server.ok("jj_evolog", json!({"revset": "main"})).await);
 }
 
 #[tokio::test]
 async fn evolog_with_template() {
     let server = Server::spawn().await;
     let args = json!({
-        "revision": "main",
+        "revset": "main",
         "no_graph": true,
         "limit": 1,
         "template": "commit.commit_id() ++ \"\\n\"",
@@ -230,7 +231,14 @@ async fn bookmark_list_all_remotes() {
 }
 
 #[tokio::test]
-async fn bookmark_list_revset_ignores_default() {
+async fn bookmark_list_revset() {
+    let server = Server::spawn().await;
+    let args = json!({"revset": "main", "template": "name ++ \"\\n\""});
+    assert_snap!(server.ok("jj_bookmark_list", args).await);
+}
+
+#[tokio::test]
+async fn bookmark_list_ignores_default() {
     let server = Server::spawn().await;
     server
         .ok(
@@ -238,8 +246,12 @@ async fn bookmark_list_revset_ignores_default() {
             json!({"revision": "ci_update@origin"}),
         )
         .await;
-    let args = json!({"revset": "main", "template": "name ++ \"\\n\""});
-    assert_snap!(server.ok("jj_bookmark_list", args).await);
+    let text = server.ok("jj_bookmark_list", json!({})).await;
+    let first_line = text.lines().next().unwrap();
+    assert_eq!(
+        first_line,
+        "$ jj bookmark list --ignore-working-copy --color=never"
+    );
 }
 
 #[tokio::test]
@@ -372,4 +384,67 @@ async fn exits_outside_a_repo() {
     assert!(output.stdout.is_empty());
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.contains("There is no jj repo"), "{stderr}");
+}
+
+#[tokio::test]
+async fn unknown_params_are_rejected() {
+    let server = Server::spawn().await;
+    server
+        .ok("jj_set_default_revision", json!({"revision": "main"}))
+        .await;
+    // `jj_show` takes `revset`, not `revision`. This must not show the default.
+    let text = server
+        .err("jj_show", json!({"revision": "ci_update@origin"}))
+        .await;
+    assert!(text.contains("unknown field `revision`"), "{text}");
+}
+
+#[tokio::test]
+async fn does_not_write_to_the_repo() {
+    let dir = tempfile::tempdir().unwrap();
+    let dir = dir.path();
+    jj(dir, &["git", "init", "--colocate"]);
+    std::fs::write(dir.join("a.txt"), "one\n").unwrap();
+    jj(dir, &["commit", "--message=one"]);
+    jj(dir, &["bookmark", "create", "--revision=@-", "b"]);
+    // Leave a change in the working copy, so a snapshot would be a new op.
+    std::fs::write(dir.join("a.txt"), "two\n").unwrap();
+    let op_log = || {
+        jj(
+            dir,
+            &[
+                "op",
+                "log",
+                "--ignore-working-copy",
+                "--template=id ++ \"\\n\"",
+            ],
+        )
+    };
+    let before = op_log();
+
+    let server = Server::spawn_in(dir).await;
+    for (tool, args) in [
+        ("jj_set_default_revision", json!({"revision": "@-"})),
+        ("jj_log", json!({"patch": true})),
+        ("jj_show", json!({})),
+        ("jj_diff", json!({})),
+        ("jj_diff_range", json!({"from": "root()", "to": "@"})),
+        ("jj_interdiff", json!({"from": "@-", "to": "@"})),
+        ("jj_evolog", json!({"patch": true})),
+        ("jj_file_show", json!({"paths": ["a.txt"]})),
+        ("jj_file_list", json!({})),
+        ("jj_file_search", json!({"pattern": "one"})),
+        ("jj_file_annotate", json!({"path": "a.txt"})),
+        ("jj_bookmark_list", json!({"all_remotes": true})),
+        ("jj_help", json!({"topic": "revsets"})),
+    ] {
+        server.ok(tool, args).await;
+    }
+    let status = server.ok("jj_status", json!({})).await;
+    assert!(
+        status.contains("The working copy has no changes."),
+        "{status}"
+    );
+
+    assert_eq!(op_log(), before);
 }

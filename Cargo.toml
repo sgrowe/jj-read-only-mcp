@@ -6,13 +6,12 @@ edition = "2024"
 [dependencies]
 rmcp = { version = "3.5.0", features = ["server", "transport-io"] }
 serde = { version = "1.0.229", features = ["derive"] }
-tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread", "process", "io-std"] }
+tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread", "process", "io-std", "sync"] }
 
 [dev-dependencies]
 insta = { version = "1.48.0", features = ["filters"] }
 rmcp = { version = "3.5.0", features = ["client", "transport-child-process"] }
 tempfile = "3.27.0"
-tokio = "1.53.1"
 
 [lints.rust]
 unsafe_code = "forbid"

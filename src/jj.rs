@@ -73,7 +73,8 @@ impl Args {
     }
 
     /// Runs `jj` and returns its formatted output. `isError` is set if jj
-    /// exits non-zero or can't be started.
+    /// exits non-zero or can't be started. If the returned future is dropped
+    /// (e.g. the call is cancelled), jj is killed.
     pub async fn run(self) -> CallToolResult {
         let output = Command::new("jj")
             .args(&self.0)
@@ -84,8 +85,8 @@ impl Args {
         let (text, is_error) = match output {
             Ok(output) => format_output(
                 &self.0,
-                &String::from_utf8_lossy(&output.stdout),
-                &String::from_utf8_lossy(&output.stderr),
+                &decode(&output.stdout, "stdout"),
+                &decode(&output.stderr, "stderr"),
                 output.status.code(),
             ),
             Err(err) => (
@@ -135,6 +136,21 @@ pub fn format_output(
     (out, is_error)
 }
 
+/// Decodes jj's output as UTF-8. Invalid bytes are replaced, with a note
+/// saying so.
+fn decode<'a>(bytes: &'a [u8], stream: &str) -> Cow<'a, str> {
+    let mut text = String::from_utf8_lossy(bytes);
+    if let Cow::Owned(text) = &mut text {
+        if !text.ends_with('\n') {
+            text.push('\n');
+        }
+        text.push('(');
+        text.push_str(stream);
+        text.push_str(" was not valid UTF-8: invalid bytes are shown as U+FFFD)");
+    }
+    text
+}
+
 /// The `$ jj …` line, with each arg shell-quoted.
 fn command_line(argv: &[String]) -> String {
     let mut line = "$ jj".to_owned();
@@ -147,9 +163,10 @@ fn command_line(argv: &[String]) -> String {
 
 /// Shell-quotes `arg` only if it needs it. Unlike `shlex`, this leaves `=`
 /// alone, so flags print as `--color=never` rather than `'--color=never'`.
+/// A leading `=` is still quoted, because zsh expands `=word`.
 fn quote(arg: &str) -> Cow<'_, str> {
     let safe = |c: char| c.is_ascii_alphanumeric() || "_-./=:@,+%".contains(c);
-    if !arg.is_empty() && arg.chars().all(safe) {
+    if !arg.is_empty() && !arg.starts_with('=') && arg.chars().all(safe) {
         Cow::Borrowed(arg)
     } else {
         Cow::Owned(format!("'{}'", arg.replace('\'', r"'\''")))
@@ -177,6 +194,16 @@ mod tests {
         assert_eq!(quote("a b"), "'a b'");
         assert_eq!(quote("it's"), r"'it'\''s'");
         assert_eq!(quote(""), "''");
+        assert_eq!(quote("=eq"), "'=eq'");
+    }
+
+    #[test]
+    fn decode_notes_invalid_utf8() {
+        assert_eq!(decode(b"ok\n", "stdout"), "ok\n");
+        assert_eq!(
+            decode(b"a\xffb", "stdout"),
+            "a\u{fffd}b\n(stdout was not valid UTF-8: invalid bytes are shown as U+FFFD)"
+        );
     }
 
     #[test]

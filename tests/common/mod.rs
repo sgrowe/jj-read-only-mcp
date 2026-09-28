@@ -35,31 +35,55 @@ fn tmp_dir() -> &'static Path {
     Path::new(env!("CARGO_TARGET_TMPDIR"))
 }
 
-/// An empty jj config, so the user's config can't change the output.
-fn empty_config() -> PathBuf {
-    tmp_dir().join("empty-jj-config.toml")
+/// The environment for every jj and server process the tests run.
+/// - An empty `JJ_CONFIG`, so the user's config can't change the output.
+/// - A fake home, so jj keeps each repo's config (in `~/.config/jj/repos`)
+///   there and not in the user's home.
+/// - `TZ=UTC`, so timestamps don't depend on the machine.
+fn test_env() -> [(&'static str, PathBuf); 4] {
+    static HOME: OnceLock<PathBuf> = OnceLock::new();
+    let home = HOME.get_or_init(|| {
+        let home = tmp_dir().join("home");
+        if home.exists() {
+            std::fs::remove_dir_all(&home).unwrap();
+        }
+        std::fs::create_dir_all(&home).unwrap();
+        std::fs::write(tmp_dir().join("empty-jj-config.toml"), "").unwrap();
+        home
+    });
+    [
+        ("JJ_CONFIG", tmp_dir().join("empty-jj-config.toml")),
+        ("HOME", home.clone()),
+        ("XDG_CONFIG_HOME", home.join(".config")),
+        ("TZ", "UTC".into()),
+    ]
+}
+
+/// Runs jj in `dir`, asserts it succeeded, and returns its stdout.
+pub fn jj(dir: &Path, args: &[&str]) -> String {
+    let output = Command::new("jj")
+        .args(args)
+        .current_dir(dir)
+        .envs(test_env())
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "jj {args:?} failed:\n{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    String::from_utf8(output.stdout).unwrap()
 }
 
 /// The fixture repo, cloned once per test run.
 fn repo() -> &'static Path {
     static REPO: OnceLock<PathBuf> = OnceLock::new();
     REPO.get_or_init(|| {
-        std::fs::write(empty_config(), "").unwrap();
         let repo = tmp_dir().join("aider-script");
         if repo.exists() {
             std::fs::remove_dir_all(&repo).unwrap();
         }
-        let output = Command::new("jj")
-            .args(["git", "clone", FIXTURE_URL])
-            .arg(&repo)
-            .env("JJ_CONFIG", empty_config())
-            .output()
-            .unwrap();
-        assert!(
-            output.status.success(),
-            "cloning {FIXTURE_URL} failed:\n{}",
-            String::from_utf8_lossy(&output.stderr)
-        );
+        jj(tmp_dir(), &["git", "clone", FIXTURE_URL, "aider-script"]);
         repo
     })
 }
@@ -67,10 +91,7 @@ fn repo() -> &'static Path {
 /// A command that runs the server binary in `dir`.
 pub fn server_command(dir: &Path) -> tokio::process::Command {
     let mut command = tokio::process::Command::new(env!("CARGO_BIN_EXE_jj-read-only-mcp"));
-    command
-        .current_dir(dir)
-        .env("JJ_CONFIG", empty_config())
-        .env("TZ", "UTC");
+    command.current_dir(dir).envs(test_env());
     command
 }
 
@@ -80,7 +101,12 @@ pub struct Server(RunningService<RoleClient, ()>);
 impl Server {
     /// Spawns the server in the fixture repo.
     pub async fn spawn() -> Self {
-        let transport = TokioChildProcess::new(server_command(repo())).unwrap();
+        Self::spawn_in(repo()).await
+    }
+
+    /// Spawns the server in `dir`.
+    pub async fn spawn_in(dir: &Path) -> Self {
+        let transport = TokioChildProcess::new(server_command(dir)).unwrap();
         Self(().serve(transport).await.unwrap())
     }
 
@@ -117,12 +143,9 @@ impl Server {
         text
     }
 
-    /// The names of the server's tools.
-    pub async fn tool_names(&self) -> Vec<String> {
+    /// The server's tools, as pretty JSON.
+    pub async fn tools_json(&self) -> String {
         let tools = self.0.list_all_tools().await.unwrap();
-        tools
-            .into_iter()
-            .map(|tool| tool.name.into_owned())
-            .collect()
+        rmcp::serde_json::to_string_pretty(&tools).unwrap()
     }
 }

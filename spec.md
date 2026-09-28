@@ -11,7 +11,7 @@ Every jj call gets `--ignore-working-copy --color=never` (so `@` is the last sna
 | `jj_diff` | `jj diff --revisions=$revset [--git \| --stat \| --summary \| --name-only] [--context=] [-- $paths...]` |
 | `jj_diff_range` | `jj diff --from=$from --to=$to [same format flags] [-- $paths...]` |
 | `jj_interdiff` | `jj interdiff --from=$from --to=$to [same format flags] [-- $paths...]` |
-| `jj_evolog` | `jj evolog --revisions=$revision [--limit=] [--no-graph] [--patch --git] [--template=]` |
+| `jj_evolog` | `jj evolog --revisions=$revset [--limit=] [--no-graph] [--patch --git] [--template=]` |
 | `jj_file_show` | `jj file show --revision=$revision [--template=] -- $paths...` |
 | `jj_file_list` | `jj file list --revision=$revision [--template=] [-- $paths...]` |
 | `jj_file_search` | `jj file search --revision=$revision --pattern=$string_pattern (--line-number \| --name-only) [-- $paths...]` |
@@ -23,9 +23,15 @@ Every jj call gets `--ignore-working-copy --color=never` (so `@` is the last sna
 
 Diffs are always git-formatted: `--git` is added unless `stat`, `summary` or `name_only` is set. These three are mutually exclusive, and jj errors if you combine them.
 
+Unknown params are rejected (the schemas set `additionalProperties: false`), so a misnamed param such as `revision` on a tool that takes `revset` is an error rather than silently falling back to the default revision.
+
+Every tool is annotated `readOnlyHint: true, openWorldHint: false`, except `jj_set_default_revision`, which is `readOnlyHint: false, destructiveHint: false, idempotentHint: true`.
+
+If the client cancels a call, the jj process is killed.
+
 ### Default revision
 
-`jj_set_default_revision($revision)` stores the string for this server session (in memory, not persisted). It fills any omitted `$revset`/`$revision` param. It never fills `from`/`to`, bookmark filters or help topics. On set, it runs `jj log --no-graph --revision=$revision` and returns the output. The value is stored only if jj succeeds. Passing null/empty clears it. If a tool needs a revision, none is given and no default is set, the tool returns an error without running jj.
+`jj_set_default_revision($revision)` stores the string for this server session (in memory, not persisted). It fills any omitted `$revset`/`$revision` param. It never fills `from`/`to`, bookmark filters or help topics. On set, it runs `jj log --no-graph --revision=$revision` and returns the output. The value is stored only if jj succeeds. Passing null/empty clears it. If a tool needs a revision, none is given and no default is set, the tool returns an error without running jj. Setting takes a lock that is held until its `jj log` check finishes, so calls see the default in the order they were made.
 
 ## Output
 
@@ -38,6 +44,7 @@ $ <exact argv, shell-quoted>
 - `isError` is set on a non-zero exit, and a final `exit code: N` line is added.
 - If stdout and stderr are both empty, output `(no output)`.
 - No truncation.
+- Output that isn't valid UTF-8 has the invalid bytes replaced with U+FFFD, and a note saying so.
 
 Example:
 
@@ -60,7 +67,7 @@ app/permissions.ts     | 45 +++++++++++++++++++++++++++++++++++----------
 - `$revset`: a jj revset (`jj help -k revsets`).
 - `$revision`: a revset matching a single change. jj errors if it matches several.
 - `$string_pattern`: see "String patterns" in `jj help -k revsets`.
-- `$paths`: fileset expressions (`jj help -k filesets`).
+- `$paths`: fileset expressions (`jj help -k filesets`). Plain paths work, but a path with special characters such as `(`, `)`, `~`, `&`, `|` or spaces must be double-quoted inside the string, e.g. `"app/(auth)/page.tsx"`. Unquoted, `a~b` means "`a` minus `b`".
 - `$path`: one literal file path (`jj_file_annotate`), not a fileset.
 - `$template`: a jj template (`jj help -k templates`). The keywords depend on the command: `jj_evolog` needs `commit.commit_id()`, not `commit_id`.
 - `$help_topic`: currently `bookmarks`, `config`, `filesets`, `glossary`, `revsets`, `templates`, `tutorial`.
@@ -71,9 +78,17 @@ app/permissions.ts     | 45 +++++++++++++++++++++++++++++++++++----------
 - At startup, runs `jj root`. If cwd is not a jj repo, exits with jj's error.
 - No jj version checks and no input validation: jj reports errors.
 
+### Known limits of the read-only guarantee
+
+`--ignore-working-copy` stops jj touching the working copy, but jj can still write some repo metadata when it loads the repo:
+
+- **Divergent operations.** If the op log has more than one head (e.g. the user ran two jj commands at the same time, or used `jj --at-op=<old op>` to make a change), any tool call merges them, printing "Concurrent modification detected, resolving automatically." This writes a new "reconcile divergent operations" operation. Adding `--at-op=@` to every call would stop this (jj then errors instead), but we don't, because the user's next jj command would do the same merge anyway.
+- **Repo config.** jj keeps each repo's config outside the repo, in its config dir (e.g. `~/.config/jj/repos/`), and may create or update that entry (e.g. for a newly cloned or copied repo).
+
 ## Testing
 
 - Integration tests clone `https://github.com/sgrowe/aider-script` (abandoned, never changes) once per run into cargo's temp dir. Each test spawns the server binary with the rmcp client over stdio.
-- Tests run with an empty `JJ_CONFIG` and `TZ=UTC`, and use `insta` snapshots. They use stable refs (`main`, which is also tag `v0.1.5`, and the untracked `ci_update@origin`), never `@`.
+- Tests run with an empty `JJ_CONFIG`, `TZ=UTC` and a fake `HOME` (so jj's per-repo config goes in cargo's temp dir, not the user's home), and use `insta` snapshots. They use stable refs (`main`, which is also tag `v0.1.5`, and the untracked `ci_update@origin`), never `@`.
+- `does_not_write_to_the_repo` runs every tool against a colocated repo with an unsnapshotted working-copy change, and checks the op log is unchanged.
 - CI runs the tests against a matrix of jj versions (currently `0.45.1`), installed from GitHub release binaries. The Rust toolchain is pinned in `rust-toolchain.toml`.
 - Lints: clippy `pedantic`, and `unsafe_code = "forbid"`.

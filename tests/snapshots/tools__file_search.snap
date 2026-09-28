@@ -2,7 +2,7 @@
 source: tests/tools.rs
 expression: text
 ---
-$ jj file search --ignore-working-copy --color=never --revision=main --pattern=Tera --line-number -- src
+$ jj file search --ignore-working-copy --color=never --revision=main --pattern=regex:Tera --line-number -- src
 src/command_template.rs:3:use tera::{Context, Tera};
 src/command_template.rs:79:        // Create a Tera instance with a single template
 src/command_template.rs:80:        let mut tera = Tera::default();

@@ -1,5 +1,6 @@
 //! The MCP server: one tool per read-only jj command.
 
+use std::fmt;
 use std::sync::Arc;
 
 use rmcp::handler::server::router::tool::ToolRouter;
@@ -11,7 +12,7 @@ use rmcp::model::{
 };
 use rmcp::service::RequestContext;
 use rmcp::{ErrorData, RoleServer, ServerHandler, schemars, tool, tool_handler, tool_router};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tokio::sync::Mutex;
 
 use crate::jj::Args;
@@ -41,7 +42,18 @@ Suggested review flow:
 1. jj_set_default_revision with the change under review.
 2. jj_show for its description and changed files.
 3. jj_diff with `paths` to read the diff a file or directory at a time.
-4. jj_file_show to read whole files at that revision for context.";
+4. jj_file_show to read whole files at that revision for context.
+
+Tips:
+- To review a branch's own changes, use jj_diff_range with \
+`from: \"fork_point(trunk() | <branch>)\"` and `to: \"<branch>\"`. \
+`from: \"trunk()\"` also shows trunk's newer commits as reverted, and jj_diff \
+`trunk()..<branch>` fails if the branch merged trunk.";
+
+/// `jj_file_show`'s default template: a header before each file. It starts
+/// with a newline so the header is on its own line even after a file with no
+/// final newline.
+const FILE_SHOW_TEMPLATE: &str = r#""\n==> " ++ format_path(path) ++ " <==\n""#;
 
 // Every args struct denies unknown fields, so a misnamed param (e.g.
 // `revision` where the tool takes `revset`) is an error, not silently
@@ -166,7 +178,7 @@ pub struct FileShowArgs {
     revision: Option<String>,
     /// Filesets to print.
     paths: Vec<String>,
-    /// Template for each file.
+    /// Template for each file's header.
     template: Option<String>,
 }
 
@@ -182,15 +194,45 @@ pub struct FileListArgs {
     template: Option<String>,
 }
 
+/// How `jj_file_search` matches its pattern (jj's string pattern kinds).
+#[derive(Clone, Copy, Default, Deserialize, Serialize, schemars::JsonSchema)]
+#[serde(rename_all = "lowercase")]
+#[schemars(inline)]
+enum PatternKind {
+    Exact,
+    Glob,
+    #[default]
+    Regex,
+    Substring,
+}
+
+impl fmt::Display for PatternKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Self::Exact => "exact",
+            Self::Glob => "glob",
+            Self::Regex => "regex",
+            Self::Substring => "substring",
+        })
+    }
+}
+
 #[derive(Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct FileSearchArgs {
     /// Revision to search at. Defaults to the default revision.
     revision: Option<String>,
-    /// String pattern matched against each line, as `kind:pattern` (see
-    /// "String patterns" in `jj_help` topic `revsets`). The kind defaults to
-    /// `regex`. A `glob:` pattern must match the whole line.
+    /// Text to match against each line, used as-is. Set the kind with `kind`,
+    /// not a `kind:` prefix.
     pattern: String,
+    /// `regex` (the default) matches anywhere in the line, `substring` matches
+    /// plain text anywhere in the line, `exact` must equal the whole line, and
+    /// `glob` must match the whole line (e.g. `*foo*`).
+    #[serde(default)]
+    kind: PatternKind,
+    /// Match case-insensitively.
+    #[serde(default)]
+    ignore_case: bool,
     /// Print only the names of matching files, not the matching lines.
     #[serde(default)]
     name_only: bool,
@@ -374,14 +416,18 @@ impl JjServer {
     }
 
     #[tool(
-        description = "Print the contents of files at a revision (`jj file show`).",
+        description = "Print the contents of files at a revision (`jj file show`). Each \
+        file is preceded by a `==> path <==` header, unless `template` is set.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn jj_file_show(&self, Parameters(args): Parameters<FileShowArgs>) -> ToolResult {
         let revision = self.resolve(args.revision, "revision").await?;
         Ok(Args::new(&["file", "show"])
             .value("--revision", revision)
-            .opt("--template", args.template)
+            .value(
+                "--template",
+                args.template.as_deref().unwrap_or(FILE_SHOW_TEMPLATE),
+            )
             .positional(args.paths)
             .run()
             .await)
@@ -408,9 +454,10 @@ impl JjServer {
     )]
     async fn jj_file_search(&self, Parameters(args): Parameters<FileSearchArgs>) -> ToolResult {
         let revision = self.resolve(args.revision, "revision").await?;
+        let case = if args.ignore_case { "-i" } else { "" };
         Ok(Args::new(&["file", "search"])
             .value("--revision", revision)
-            .value("--pattern", args.pattern)
+            .value("--pattern", format!("{}{case}:{}", args.kind, args.pattern))
             .arg(if args.name_only {
                 "--name-only"
             } else {

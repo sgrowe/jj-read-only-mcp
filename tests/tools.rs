@@ -232,6 +232,38 @@ async fn file_show() {
 }
 
 #[tokio::test]
+async fn file_show_with_template() {
+    let server = Server::spawn().await;
+    let args = json!({
+        "revision": "main",
+        "paths": ["src/str.rs", "conventions.md"],
+        "template": "path ++ \"\\n\"",
+    });
+    assert_snap!(server.ok("jj_file_show", args).await);
+}
+
+/// The header starts with a newline, so it isn't joined to the last line of a
+/// file with no final newline.
+#[tokio::test]
+async fn file_show_header_after_no_final_newline() {
+    let dir = tempfile::tempdir().unwrap();
+    let dir = dir.path();
+    jj(dir, &["git", "init"]);
+    std::fs::write(dir.join("a.txt"), "x").unwrap();
+    std::fs::write(dir.join("b.txt"), "y\n").unwrap();
+    jj(dir, &["commit", "--message=files"]);
+
+    let server = Server::spawn_in(dir).await;
+    let args = json!({"revision": "@-", "paths": ["a.txt", "b.txt"]});
+    assert_eq!(
+        server.ok("jj_file_show", args).await,
+        "$ jj file show --ignore-working-copy --color=never --revision=@- \
+         '--template=\"\\n==> \" ++ format_path(path) ++ \" <==\\n\"' -- a.txt b.txt\n\
+         \n==> a.txt <==\nx\n==> b.txt <==\ny\n"
+    );
+}
+
+#[tokio::test]
 async fn file_list() {
     let server = Server::spawn().await;
     assert_snap!(server.ok("jj_file_list", json!({"revision": "main"})).await);
@@ -254,7 +286,21 @@ async fn file_search() {
 #[tokio::test]
 async fn file_search_name_only() {
     let server = Server::spawn().await;
-    let args = json!({"revision": "main", "pattern": "substring:tera", "name_only": true});
+    let args = json!({
+        "revision": "main",
+        "pattern": "TERA",
+        "kind": "substring",
+        "ignore_case": true,
+        "name_only": true,
+    });
+    assert_snap!(server.ok("jj_file_search", args).await);
+}
+
+/// A colon in the pattern isn't read as a pattern kind.
+#[tokio::test]
+async fn file_search_pattern_with_colon() {
+    let server = Server::spawn().await;
+    let args = json!({"revision": "main", "pattern": "tera::Result", "paths": ["src"]});
     assert_snap!(server.ok("jj_file_search", args).await);
 }
 

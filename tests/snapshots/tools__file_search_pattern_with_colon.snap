@@ -1,0 +1,6 @@
+---
+source: tests/tools.rs
+expression: text
+---
+$ jj file search --ignore-working-copy --color=never --revision=main --pattern=regex:tera::Result --line-number -- src
+src/command_template.rs:108:fn render_strings<P>(paths: P, tera: &mut Tera, context: &Context) -> tera::Result<Vec<String>>

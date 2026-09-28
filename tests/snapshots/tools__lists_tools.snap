@@ -286,6 +286,22 @@ expression: text
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
       "properties": {
+        "ignore_case": {
+          "default": false,
+          "description": "Match case-insensitively.",
+          "type": "boolean"
+        },
+        "kind": {
+          "default": "regex",
+          "description": "`regex` (the default) matches anywhere in the line, `substring` matches\nplain text anywhere in the line, `exact` must equal the whole line, and\n`glob` must match the whole line (e.g. `*foo*`).",
+          "enum": [
+            "exact",
+            "glob",
+            "regex",
+            "substring"
+          ],
+          "type": "string"
+        },
         "name_only": {
           "default": false,
           "description": "Print only the names of matching files, not the matching lines.",
@@ -300,7 +316,7 @@ expression: text
           "type": "array"
         },
         "pattern": {
-          "description": "String pattern matched against each line, as `kind:pattern` (see\n\"String patterns\" in `jj_help` topic `revsets`). The kind defaults to\n`regex`. A `glob:` pattern must match the whole line.",
+          "description": "Text to match against each line, used as-is. Set the kind with `kind`,\nnot a `kind:` prefix.",
           "type": "string"
         },
         "revision": {
@@ -323,7 +339,7 @@ expression: text
   },
   {
     "name": "jj_file_show",
-    "description": "Print the contents of files at a revision (`jj file show`).",
+    "description": "Print the contents of files at a revision (`jj file show`). Each file is preceded by a `==> path <==` header, unless `template` is set.",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
@@ -343,7 +359,7 @@ expression: text
           ]
         },
         "template": {
-          "description": "Template for each file.",
+          "description": "Template for each file's header.",
           "type": [
             "string",
             "null"

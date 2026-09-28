@@ -2,7 +2,7 @@
 source: tests/tools.rs
 expression: text
 ---
-$ jj file search --ignore-working-copy --color=never --revision=main --pattern=substring:tera --name-only
+$ jj file search --ignore-working-copy --color=never --revision=main --pattern=substring-i:TERA --name-only
 Cargo.lock
 Cargo.toml
 README.md

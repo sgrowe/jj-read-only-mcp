@@ -12,9 +12,9 @@ Every jj call gets `--ignore-working-copy --color=never` (so `@` is the last sna
 | `jj_diff_range` | `jj diff --from=$from --to=$to [same format flags] [-- $paths...]` |
 | `jj_interdiff` | `jj interdiff --from=$from --to=$to [same format flags] [-- $paths...]` |
 | `jj_evolog` | `jj evolog --revisions=$revset [--limit=] [--no-graph] [--patch --git] [--template=]` |
-| `jj_file_show` | `jj file show --revision=$revision [--template=] -- $paths...` |
+| `jj_file_show` | `jj file show --revision=$revision --template=($template or the header template) -- $paths...` |
 | `jj_file_list` | `jj file list --revision=$revision [--template=] [-- $paths...]` |
-| `jj_file_search` | `jj file search --revision=$revision --pattern=$string_pattern (--line-number \| --name-only) [-- $paths...]` |
+| `jj_file_search` | `jj file search --revision=$revision --pattern=$kind[-i]:$pattern (--line-number \| --name-only) [-- $paths...]` |
 | `jj_file_annotate` | `jj file annotate --revision=$revision [--template=] -- $path` |
 | `jj_bookmark_list` | `jj bookmark list [--revision=$revset] [--all-remotes] [--template=] [-- $names...]` |
 | `jj_help` | `jj help --keyword=$help_topic` |
@@ -66,7 +66,8 @@ app/permissions.ts     | 45 +++++++++++++++++++++++++++++++++++----------
 
 - `$revset`: a jj revset (`jj help -k revsets`).
 - `$revision`: a revset matching a single change. jj errors if it matches several.
-- `$string_pattern`: see "String patterns" in `jj help -k revsets`.
+- `$kind`: one of `exact`, `glob`, `regex`, `substring` (default `regex`), plus `-i` if `ignore_case` is set. See "String patterns" in `jj help -k revsets`.
+- `$pattern`: used verbatim, so a colon in it is never read as a pattern kind.
 - `$paths`: fileset expressions (`jj help -k filesets`). Plain paths work, but a path with special characters such as `(`, `)`, `~`, `&`, `|` or spaces must be double-quoted inside the string, e.g. `"app/(auth)/page.tsx"`. Unquoted, `a~b` means "`a` minus `b`".
 - `$path`: one literal file path (`jj_file_annotate`), not a fileset.
 - `$template`: a jj template (`jj help -k templates`). The keywords depend on the command: `jj_evolog` needs `commit.commit_id()`, not `commit_id`.
@@ -75,8 +76,9 @@ app/permissions.ts     | 45 +++++++++++++++++++++++++++++++++++----------
 ## Behaviour
 
 - Uses the user's jj config (aliases, templates). Output colour is forced off.
+- `jj_file_show` overrides the user's `templates.file_show` unless `template` is given. The header template prints `==> path <==` before each file, starting with a newline so the header is on its own line after a file with no final newline.
 - At startup, runs `jj root`. If cwd is not a jj repo, exits with jj's error.
-- No jj version checks and no input validation: jj reports errors.
+- No jj version checks and no input validation beyond the schema: jj reports errors.
 
 ### Known limits of the read-only guarantee
 

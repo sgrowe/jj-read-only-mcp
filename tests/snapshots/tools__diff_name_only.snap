@@ -1,0 +1,8 @@
+---
+source: tests/tools.rs
+expression: text
+---
+$ jj diff --ignore-working-copy --color=never --revisions=main --name-only
+.github/workflows/ci.yml
+Cargo.lock
+Cargo.toml

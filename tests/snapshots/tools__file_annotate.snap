@@ -1,0 +1,10 @@
+---
+source: tests/tools.rs
+expression: text
+---
+$ jj file annotate --ignore-working-copy --color=never --revision=main -- src/str.rs
+xqmlpnql sgrowe   2025-03-09 16:03:18    1: pub fn substr_index_within_parent(substr: &str, doc: &str) -> usize {
+xqmlpnql sgrowe   2025-03-09 16:03:18    2:     // From https://users.rust-lang.org/t/what-is-the-best-way-to-iterate-over-lines-of-a-string-with-offset/120021/10
+xqmlpnql sgrowe   2025-03-09 16:03:18    3: 
+xqmlpnql sgrowe   2025-03-09 16:03:18    4:     substr.as_ptr() as usize - doc.as_ptr() as usize
+xqmlpnql sgrowe   2025-03-09 16:03:18    5: }

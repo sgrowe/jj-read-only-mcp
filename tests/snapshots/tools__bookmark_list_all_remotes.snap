@@ -1,0 +1,6 @@
+---
+source: tests/tools.rs
+expression: text
+---
+$ jj bookmark list --ignore-working-copy --color=never --all-remotes -- 'ci*'
+ci_update@origin: ktnxqtkr 37bf0123 v0.1.5

@@ -1,0 +1,18 @@
+---
+source: tests/tools.rs
+expression: text
+---
+jj_bookmark_list
+jj_diff
+jj_diff_range
+jj_evolog
+jj_file_annotate
+jj_file_list
+jj_file_search
+jj_file_show
+jj_help
+jj_interdiff
+jj_log
+jj_set_default_revision
+jj_show
+jj_status

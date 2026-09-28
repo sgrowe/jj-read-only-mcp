@@ -1,0 +1,7 @@
+---
+source: tests/tools.rs
+expression: text
+---
+$ jj evolog --ignore-working-copy --color=never --revisions=main
+◆  srvnxsys sgrowe@live.co.uk 2025-04-03 13:05:47 main v0.1.5 39bbaef2
+   v0.1.5

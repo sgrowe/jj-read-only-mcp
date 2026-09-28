@@ -1,0 +1,20 @@
+---
+source: tests/tools.rs
+expression: text
+---
+$ jj diff --ignore-working-copy --color=never --revisions=main --git --context=1 -- .github/workflows/ci.yml
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index 71d793fbdc..31b235ffd1 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -16,2 +16,4 @@
+     runs-on: ubuntu-latest
++    permissions:
++      contents: write
+     steps:
+@@ -43,2 +45,5 @@
+ 
++          git config user.name "Automated"
++          git config user.email "actions@users.noreply.github.com"
++
+           git tag -a v$version -m "Release v$version"

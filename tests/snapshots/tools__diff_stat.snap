@@ -1,0 +1,9 @@
+---
+source: tests/tools.rs
+expression: text
+---
+$ jj diff --ignore-working-copy --color=never --revisions=main --stat
+.github/workflows/ci.yml | 5 +++++
+Cargo.lock               | 2 +-
+Cargo.toml               | 2 +-
+3 files changed, 7 insertions(+), 2 deletions(-)

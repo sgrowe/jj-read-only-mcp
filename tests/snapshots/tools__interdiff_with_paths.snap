@@ -1,0 +1,6 @@
+---
+source: tests/tools.rs
+expression: text
+---
+$ jj interdiff --ignore-working-copy --color=never --from=ci_update@origin --to=main --name-only -- .github
+.github/workflows/ci.yml

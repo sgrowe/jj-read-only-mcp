@@ -1,0 +1,13 @@
+---
+source: tests/tools.rs
+expression: text
+---
+$ jj file show --ignore-working-copy --color=never --revision=main -- src/str.rs conventions.md
+- Do not give a high-level explanation of what you will do, just do it.
+- Be terse in your response
+- Do not give me example commands to run tests
+pub fn substr_index_within_parent(substr: &str, doc: &str) -> usize {
+    // From https://users.rust-lang.org/t/what-is-the-best-way-to-iterate-over-lines-of-a-string-with-offset/120021/10
+
+    substr.as_ptr() as usize - doc.as_ptr() as usize
+}

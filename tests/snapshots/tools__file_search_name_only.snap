@@ -1,0 +1,11 @@
+---
+source: tests/tools.rs
+expression: text
+---
+$ jj file search --ignore-working-copy --color=never --revision=main --pattern=substring:tera --name-only
+Cargo.lock
+Cargo.toml
+README.md
+src/command_template.rs
+src/filters.rs
+src/str.rs

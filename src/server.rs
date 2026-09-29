@@ -50,8 +50,8 @@ Tips:
 `from: \"trunk()\"` also shows trunk's newer commits as reverted, and jj_diff \
 `trunk()..<branch>` fails if the branch merged trunk.";
 
-/// `jj_file_show`'s default template: a header before each file. It starts
-/// with a newline so the header is on its own line even after a file with no
+/// `jj_file_show`'s header template, used when more than one path is given:
+/// a header before each file. It starts with a newline so the header is on its own line even after a file with no
 /// final newline.
 const FILE_SHOW_TEMPLATE: &str = r#""\n==> " ++ format_path(path) ++ " <==\n""#;
 
@@ -416,18 +416,20 @@ impl JjServer {
     }
 
     #[tool(
-        description = "Print the contents of files at a revision (`jj file show`). Each \
-        file is preceded by a `==> path <==` header, unless `template` is set.",
+        description = "Print the contents of files at a revision (`jj file show`). When \
+        more than one path is passed each file is preceded by a `==> path <==` header, unless \
+        `template` is set.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn jj_file_show(&self, Parameters(args): Parameters<FileShowArgs>) -> ToolResult {
         let revision = self.resolve(args.revision, "revision").await?;
+        let template = args
+            .template
+            .as_deref()
+            .or((args.paths.len() > 1).then_some(FILE_SHOW_TEMPLATE));
         Ok(Args::new(&["file", "show"])
             .value("--revision", revision)
-            .value(
-                "--template",
-                args.template.as_deref().unwrap_or(FILE_SHOW_TEMPLATE),
-            )
+            .opt("--template", template)
             .positional(args.paths)
             .run()
             .await)

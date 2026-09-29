@@ -12,7 +12,7 @@ Every jj call gets `--ignore-working-copy --color=never` (so `@` is the last sna
 | `jj_diff_range` | `jj diff --from=$from --to=$to [same format flags] [-- $paths...]` |
 | `jj_interdiff` | `jj interdiff --from=$from --to=$to [same format flags] [-- $paths...]` |
 | `jj_evolog` | `jj evolog --revisions=$revset [--limit=] [--no-graph] [--patch --git] [--template=]` |
-| `jj_file_show` | `jj file show --revision=$revision --template=($template or the header template) -- $paths...` |
+| `jj_file_show` | `jj file show --revision=$revision [--template=($template, or the header template if 2+ paths)] -- $paths...` |
 | `jj_file_list` | `jj file list --revision=$revision [--template=] [-- $paths...]` |
 | `jj_file_search` | `jj file search --revision=$revision --pattern=$kind[-i]:$pattern (--line-number \| --name-only) [-- $paths...]` |
 | `jj_file_annotate` | `jj file annotate --revision=$revision [--template=] -- $path` |
@@ -76,7 +76,7 @@ app/permissions.ts     | 45 +++++++++++++++++++++++++++++++++++----------
 ## Behaviour
 
 - Uses the user's jj config (aliases, templates). Output colour is forced off.
-- `jj_file_show` overrides the user's `templates.file_show` unless `template` is given. The header template prints `==> path <==` before each file, starting with a newline so the header is on its own line after a file with no final newline.
+- `jj_file_show` uses its header template only when given more than one path and no `template`. It prints `==> path <==` before each file, starting with a newline so the header is on its own line after a file with no final newline. With one path (even a directory or glob matching several files), no `--template` is passed, so the user's `templates.file_show` applies.
 - At startup, runs `jj root`. If cwd is not a jj repo, exits with jj's error.
 - No jj version checks and no input validation beyond the schema: jj reports errors.
 

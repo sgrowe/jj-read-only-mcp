@@ -242,6 +242,33 @@ async fn file_show_with_template() {
     assert_snap!(server.ok("jj_file_show", args).await);
 }
 
+/// One path gets no header template, so the user's `templates.file_show`
+/// applies. A given `template` is still passed.
+#[tokio::test]
+async fn file_show_one_path() {
+    let server = Server::spawn().await;
+    let args = json!({"revision": "main", "paths": ["conventions.md"]});
+    let text = server.ok("jj_file_show", args).await;
+    assert_eq!(
+        text.lines().next().unwrap(),
+        "$ jj file show --ignore-working-copy --color=never --revision=main -- conventions.md"
+    );
+    assert!(!text.contains("==>"), "{text}");
+    assert_snap!(text);
+
+    let args = json!({
+        "revision": "main",
+        "paths": ["conventions.md"],
+        "template": "path ++ \"\\n\"",
+    });
+    let text = server.ok("jj_file_show", args).await;
+    assert_eq!(
+        text.lines().next().unwrap(),
+        "$ jj file show --ignore-working-copy --color=never --revision=main \
+         '--template=path ++ \"\\n\"' -- conventions.md"
+    );
+}
+
 /// The header starts with a newline, so it isn't joined to the last line of a
 /// file with no final newline.
 #[tokio::test]

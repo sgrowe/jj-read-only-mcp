@@ -339,7 +339,7 @@ expression: text
   },
   {
     "name": "jj_file_show",
-    "description": "Print the contents of files at a revision (`jj file show`). Each file is preceded by a `==> path <==` header, unless `template` is set.",
+    "description": "Print the contents of files at a revision (`jj file show`). When more than one path is passed each file is preceded by a `==> path <==` header, unless `template` is set.",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,

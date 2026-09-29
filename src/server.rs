@@ -17,7 +17,7 @@ use tokio::sync::Mutex;
 
 use crate::jj::Args;
 
-const INSTRUCTIONS: &str = "\
+pub const INSTRUCTIONS: &str = "\
 Read-only access to the jj (Jujutsu) repo in this server's working directory. \
 Use it to inspect any revision without checking it out.
 

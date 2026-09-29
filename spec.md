@@ -1,5 +1,11 @@
 A local stdio MCP server (built with [rmcp](https://github.com/modelcontextprotocol/rust-sdk)) giving read-only access to the jj repo in the current working directory, so agents can review code without checking out the revision first.
 
+## Command line
+
+- `jj-read-only-mcp`: run the MCP server on stdio, in the current directory's jj repo.
+- `jj-read-only-mcp instructions`: print the server instructions (the text sent in the initialize response) and exit. Doesn't need a jj repo. Useful to copy into a CLAUDE.md or skill.
+- Any other args: print usage to stderr and exit with code 2.
+
 ## Tools
 
 Every jj call gets `--ignore-working-copy --color=never` (so `@` is the last snapshot and may be stale). Value flags are passed as `--flag=value`. Positional args go after `--`.

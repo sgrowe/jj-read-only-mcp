@@ -1,6 +1,7 @@
 mod jj;
 mod server;
 
+use std::ffi::OsString;
 use std::io::Write;
 use std::process::{Command, Stdio, exit};
 
@@ -8,6 +9,23 @@ use rmcp::ServiceExt;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // `args_os`, not `args`: `args` panics on an arg that isn't UTF-8.
+    let args: Vec<OsString> = std::env::args_os().skip(1).collect();
+    match args.as_slice() {
+        [] => {}
+        [arg] if arg == "instructions" => {
+            println!("{}", server::INSTRUCTIONS);
+            return Ok(());
+        }
+        _ => {
+            eprintln!(
+                "usage:\n  \
+                 jj-read-only-mcp               run the MCP server on stdio\n  \
+                 jj-read-only-mcp instructions  print the server instructions"
+            );
+            exit(2);
+        }
+    }
     check_repo();
     server::JjServer::new()
         .serve(rmcp::transport::stdio())

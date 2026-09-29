@@ -1,0 +1,6 @@
+---
+source: tests/integration/bookmark_list.rs
+expression: text
+---
+$ jj bookmark list --ignore-working-copy --all-remotes -- 'ci*'
+ci_update@origin: ktnxqtkr 37bf0123 v0.1.5

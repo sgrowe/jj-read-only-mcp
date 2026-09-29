@@ -1,0 +1,14 @@
+---
+source: tests/integration/log.rs
+expression: text
+---
+$ jj log --ignore-working-copy --revision=::main '--template=description.first_line() ++ "\n"' --limit=3 --reversed --summary
+◆  Tag releases automatically in CI (#1)
+│  M .github/workflows/ci.yml
+◆  Update dependencies
+│  M Cargo.lock
+│  M Cargo.toml
+◆  v0.1.5
+   M .github/workflows/ci.yml
+   M Cargo.lock
+   M Cargo.toml

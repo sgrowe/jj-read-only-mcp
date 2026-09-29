@@ -1,0 +1,8 @@
+---
+source: tests/integration/diff.rs
+expression: text
+---
+$ jj diff --ignore-working-copy --revisions=main --summary
+M .github/workflows/ci.yml
+M Cargo.lock
+M Cargo.toml

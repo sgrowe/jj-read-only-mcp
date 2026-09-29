@@ -1,0 +1,6 @@
+---
+source: tests/integration/bookmark_list.rs
+expression: text
+---
+$ jj bookmark list --ignore-working-copy
+main: srvnxsys 39bbaef2 v0.1.5

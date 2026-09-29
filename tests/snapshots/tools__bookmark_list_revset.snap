@@ -1,6 +1,0 @@
----
-source: tests/tools.rs
-expression: text
----
-$ jj bookmark list --ignore-working-copy --revision=main '--template=name ++ "\n"'
-main

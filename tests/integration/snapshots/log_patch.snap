@@ -1,0 +1,55 @@
+---
+source: tests/integration/log.rs
+expression: text
+---
+$ jj log --ignore-working-copy --revision=main --no-graph --patch --git
+srvnxsys sgrowe@live.co.uk 2025-04-03 13:05:47 main v0.1.5 39bbaef2
+v0.1.5
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index 71d793fbdc..31b235ffd1 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -14,6 +14,8 @@
+   build_and_test:
+     name: Build, test and publish
+     runs-on: ubuntu-latest
++    permissions:
++      contents: write
+     steps:
+       - uses: actions/checkout@v4
+         with:
+@@ -41,6 +43,9 @@
+ 
+           echo "Tagging version: $version"
+ 
++          git config user.name "Automated"
++          git config user.email "actions@users.noreply.github.com"
++
+           git tag -a v$version -m "Release v$version"
+           git push origin v$version
+ 
+diff --git a/Cargo.lock b/Cargo.lock
+index 2cbca7ffb5..452bb2da37 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -13,7 +13,7 @@
+ 
+ [[package]]
+ name = "aider-script"
+-version = "0.1.4"
++version = "0.1.5"
+ dependencies = [
+  "anyhow",
+  "clap",
+diff --git a/Cargo.toml b/Cargo.toml
+index e76a4e9212..b08a28f900 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -1,6 +1,6 @@
+ [package]
+ name = "aider-script"
+-version = "0.1.4"
++version = "0.1.5"
+ edition = "2024"
+ description = "A CLI wrapper around aider to make calling reusable prompts convenient"
+ keywords = ["llm", "aider", "ai"]

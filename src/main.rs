@@ -1,5 +1,6 @@
 mod jj;
 mod server;
+mod tools;
 
 use std::ffi::OsString;
 use std::io::Write;

@@ -1,0 +1,6 @@
+---
+source: tests/integration/range_diff.rs
+expression: text
+---
+$ jj interdiff --ignore-working-copy --from=ci_update@origin --to=main --name-only -- .github
+.github/workflows/ci.yml

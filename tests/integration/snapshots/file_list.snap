@@ -1,0 +1,23 @@
+---
+source: tests/integration/file_list.rs
+expression: text
+---
+$ jj file list --ignore-working-copy --revision=main
+.aider.conf.yml
+.github/workflows/ci.yml
+.gitignore
+CLAUDE.md
+Cargo.lock
+Cargo.toml
+README.md
+conventions.md
+lint
+src/aider_command.rs
+src/args.rs
+src/command_template.rs
+src/filters.rs
+src/fixtures/01_args.md
+src/fixtures/02_casing_filters.md
+src/main.rs
+src/markdown_doc.rs
+src/str.rs

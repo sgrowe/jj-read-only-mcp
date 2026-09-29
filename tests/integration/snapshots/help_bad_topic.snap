@@ -1,0 +1,10 @@
+---
+source: tests/integration/help.rs
+expression: text
+---
+$ jj help --ignore-working-copy --keyword=nope
+error: invalid value 'nope' for '--keyword <KEYWORD>'
+  [possible values: bookmarks, config, filesets, glossary, revsets, templates, tutorial]
+
+For more information, try '--help'.
+exit code: 2

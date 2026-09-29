@@ -1,0 +1,7 @@
+---
+source: tests/integration/range_diff.rs
+expression: text
+---
+$ jj diff --ignore-working-copy --from=ci_update@origin --to=main --stat
+.github/workflows/ci.yml | 5 +++++
+1 file changed, 5 insertions(+), 0 deletions(-)

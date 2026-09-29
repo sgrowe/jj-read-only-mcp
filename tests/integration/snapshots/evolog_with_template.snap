@@ -1,0 +1,6 @@
+---
+source: tests/integration/evolog.rs
+expression: text
+---
+$ jj evolog --ignore-working-copy --revisions=main --limit=1 --no-graph '--template=commit.commit_id() ++ "\n"'
+39bbaef2b79444edc9e1fdc5ddaf6423e8e4321e

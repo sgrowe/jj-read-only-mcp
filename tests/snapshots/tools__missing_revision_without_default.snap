@@ -1,5 +1,0 @@
----
-source: tests/tools.rs
-expression: text
----
-No `revision` given and no default revision set. Pass `revision`, or call jj_set_default_revision first.

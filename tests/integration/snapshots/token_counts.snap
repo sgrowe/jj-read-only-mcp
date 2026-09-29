@@ -1,0 +1,25 @@
+---
+source: tests/integration/server.rs
+expression: text
+---
+Approximate tokens (tiktoken o200k_base). Claude's tokenizer differs,
+so use these to compare changes, not as exact costs.
+
+                         description  schema  total
+instructions                     387       -    387
+jj_bookmark_list                  18     149    180
+jj_diff                           44     249    304
+jj_diff_range                     53     267    332
+jj_evolog                         24     171    207
+jj_file_annotate                  24      99    138
+jj_file_list                      11      97    121
+jj_file_search                    31     246    289
+jj_file_show                      42      98    152
+jj_help                           31      74    116
+jj_interdiff                      82     267    361
+jj_list_remotes                   42       9     64
+jj_log                            41     218    270
+jj_set_default_revision           63      67    143
+jj_show                           26      70    107
+jj_status                         33       9     53
+total                                          3224

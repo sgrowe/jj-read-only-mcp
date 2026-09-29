@@ -1,0 +1,7 @@
+---
+source: tests/integration/file_list.rs
+expression: text
+---
+$ jj file list --ignore-working-copy --revision=ci_update@origin -- src/fixtures
+src/fixtures/01_args.md
+src/fixtures/02_casing_filters.md

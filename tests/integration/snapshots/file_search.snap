@@ -1,0 +1,9 @@
+---
+source: tests/integration/file_search.rs
+expression: text
+---
+$ jj file search --ignore-working-copy --revision=main --pattern=regex:Tera --line-number -- src
+src/command_template.rs:3:use tera::{Context, Tera};
+src/command_template.rs:79:        // Create a Tera instance with a single template
+src/command_template.rs:80:        let mut tera = Tera::default();
+src/command_template.rs:108:fn render_strings<P>(paths: P, tera: &mut Tera, context: &Context) -> tera::Result<Vec<String>>

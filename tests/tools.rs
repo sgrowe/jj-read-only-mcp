@@ -5,7 +5,7 @@
 #[macro_use]
 mod common;
 
-use common::{Server, jj, repo, server_command};
+use common::{FIXTURE_URL, Server, jj, repo, server_command};
 use rmcp::serde_json::json;
 
 #[tokio::test]
@@ -373,6 +373,15 @@ async fn bookmark_list_ignores_default() {
 }
 
 #[tokio::test]
+async fn list_remotes() {
+    let server = Server::spawn().await;
+    assert_eq!(
+        server.ok("jj_list_remotes", json!({})).await,
+        format!("$ jj git remote list --ignore-working-copy\norigin {FIXTURE_URL}\n")
+    );
+}
+
+#[tokio::test]
 async fn help() {
     let server = Server::spawn().await;
     let text = server.ok("jj_help", json!({"topic": "revsets"})).await;
@@ -601,6 +610,7 @@ async fn does_not_write_to_the_repo() {
         ("jj_file_search", json!({"pattern": "one"})),
         ("jj_file_annotate", json!({"path": "a.txt"})),
         ("jj_bookmark_list", json!({"all_remotes": true})),
+        ("jj_list_remotes", json!({})),
         ("jj_help", json!({"topic": "revsets"})),
     ] {
         server.ok(tool, args).await;

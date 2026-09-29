@@ -11,7 +11,7 @@ use rmcp::service::RunningService;
 use rmcp::transport::TokioChildProcess;
 use rmcp::{RoleClient, ServiceExt};
 
-const FIXTURE_URL: &str = "https://github.com/sgrowe/aider-script";
+pub const FIXTURE_URL: &str = "https://github.com/sgrowe/aider-script";
 
 /// Snapshots `$text`, redacting the working-copy IDs in `jj status` output
 /// (they are random for each clone).

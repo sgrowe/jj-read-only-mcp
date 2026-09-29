@@ -17,8 +17,9 @@ jj_file_search                    31     246    289
 jj_file_show                      42      98    152
 jj_help                           31      74    116
 jj_interdiff                      82     267    361
+jj_list_remotes                   42       9     64
 jj_log                            41     218    270
 jj_set_default_revision           63      67    143
 jj_show                           26      70    107
 jj_status                         33       9     53
-total                                          3160
+total                                          3224

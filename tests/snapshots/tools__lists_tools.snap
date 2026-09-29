@@ -458,6 +458,18 @@ expression: text
     }
   },
   {
+    "name": "jj_list_remotes",
+    "description": "List the git remotes and their URLs (`jj git remote list`). Use it to find the hosting repo, e.g. the GitHub `owner/repo` for looking up a branch's pull request.",
+    "inputSchema": {
+      "properties": {},
+      "type": "object"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
     "name": "jj_log",
     "description": "Show the commits in a revset (`jj log`), optionally with each commit's patch, changed files or diffstat. `@` may be stale: the working copy is not snapshotted.",
     "inputSchema": {

@@ -504,6 +504,16 @@ impl JjServer {
     }
 
     #[tool(
+        description = "List the git remotes and their URLs (`jj git remote list`). Use it to \
+        find the hosting repo, e.g. the GitHub `owner/repo` for looking up a branch's pull \
+        request.",
+        annotations(read_only_hint = true, open_world_hint = false)
+    )]
+    async fn jj_list_remotes(&self) -> CallToolResult {
+        Args::new(&["git", "remote", "list"]).run().await
+    }
+
+    #[tool(
         description = "Show jj's help on a topic (`jj help --keyword`). Topics: \
         bookmarks, config, filesets, glossary, revsets, templates, tutorial.",
         annotations(read_only_hint = true, open_world_hint = false)

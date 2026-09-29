@@ -2,7 +2,7 @@
 source: tests/tools.rs
 expression: text
 ---
-$ jj interdiff --ignore-working-copy --color=never --from=ci_update@origin --to=main --git
+$ jj interdiff --ignore-working-copy --from=ci_update@origin --to=main --git
 diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
 index 71d793fbdc..31b235ffd1 100644
 --- a/.github/workflows/ci.yml

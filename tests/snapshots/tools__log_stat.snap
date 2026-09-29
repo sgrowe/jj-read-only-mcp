@@ -2,7 +2,7 @@
 source: tests/tools.rs
 expression: text
 ---
-$ jj log --ignore-working-copy --color=never --revision=main --no-graph --stat
+$ jj log --ignore-working-copy --revision=main --no-graph --stat
 srvnxsys sgrowe@live.co.uk 2025-04-03 13:05:47 main v0.1.5 39bbaef2
 v0.1.5
 .github/workflows/ci.yml | 5 +++++

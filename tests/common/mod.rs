@@ -76,7 +76,7 @@ pub fn jj(dir: &Path, args: &[&str]) -> String {
 }
 
 /// The fixture repo, cloned once per test run.
-fn repo() -> &'static Path {
+pub fn repo() -> &'static Path {
     static REPO: OnceLock<PathBuf> = OnceLock::new();
     REPO.get_or_init(|| {
         let repo = tmp_dir().join("aider-script");
@@ -106,7 +106,13 @@ impl Server {
 
     /// Spawns the server in `dir`.
     pub async fn spawn_in(dir: &Path) -> Self {
-        let transport = TokioChildProcess::new(server_command(dir)).unwrap();
+        Self::spawn_command(server_command(dir)).await
+    }
+
+    /// Spawns the server with `command`, e.g. a `server_command` with a
+    /// changed env.
+    pub async fn spawn_command(command: tokio::process::Command) -> Self {
+        let transport = TokioChildProcess::new(command).unwrap();
         Self(().serve(transport).await.unwrap())
     }
 

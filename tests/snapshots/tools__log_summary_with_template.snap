@@ -2,7 +2,7 @@
 source: tests/tools.rs
 expression: text
 ---
-$ jj log --ignore-working-copy --color=never --revision=::main '--template=description.first_line() ++ "\n"' --limit=3 --reversed --summary
+$ jj log --ignore-working-copy --revision=::main '--template=description.first_line() ++ "\n"' --limit=3 --reversed --summary
 ◆  Tag releases automatically in CI (#1)
 │  M .github/workflows/ci.yml
 ◆  Update dependencies

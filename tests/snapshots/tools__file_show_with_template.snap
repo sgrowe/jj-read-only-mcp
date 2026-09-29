@@ -2,7 +2,7 @@
 source: tests/tools.rs
 expression: text
 ---
-$ jj file show --ignore-working-copy --color=never --revision=main '--template=path ++ "\n"' -- src/str.rs conventions.md
+$ jj file show --ignore-working-copy --revision=main '--template=path ++ "\n"' -- src/str.rs conventions.md
 conventions.md
 - Do not give a high-level explanation of what you will do, just do it.
 - Be terse in your response

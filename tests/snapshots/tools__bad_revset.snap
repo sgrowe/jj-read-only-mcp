@@ -2,7 +2,7 @@
 source: tests/tools.rs
 expression: text
 ---
-$ jj log --ignore-working-copy --color=never '--revision=main(('
+$ jj log --ignore-working-copy '--revision=main(('
 Error: Failed to parse revset: Syntax error
 Caused by:  --> 1:7
   |

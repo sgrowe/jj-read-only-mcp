@@ -5,7 +5,7 @@
 #[macro_use]
 mod common;
 
-use common::{Server, jj, server_command};
+use common::{Server, jj, repo, server_command};
 use rmcp::serde_json::json;
 
 #[tokio::test]
@@ -202,7 +202,7 @@ async fn no_output() {
         .await;
     assert_eq!(
         text,
-        "$ jj diff --ignore-working-copy --color=never --revisions=main --git -- src\n(no output)"
+        "$ jj diff --ignore-working-copy --revisions=main --git -- src\n(no output)"
     );
 }
 
@@ -251,7 +251,7 @@ async fn file_show_one_path() {
     let text = server.ok("jj_file_show", args).await;
     assert_eq!(
         text.lines().next().unwrap(),
-        "$ jj file show --ignore-working-copy --color=never --revision=main -- conventions.md"
+        "$ jj file show --ignore-working-copy --revision=main -- conventions.md"
     );
     assert!(!text.contains("==>"), "{text}");
     assert_snap!(text);
@@ -264,7 +264,7 @@ async fn file_show_one_path() {
     let text = server.ok("jj_file_show", args).await;
     assert_eq!(
         text.lines().next().unwrap(),
-        "$ jj file show --ignore-working-copy --color=never --revision=main \
+        "$ jj file show --ignore-working-copy --revision=main \
          '--template=path ++ \"\\n\"' -- conventions.md"
     );
 }
@@ -284,7 +284,7 @@ async fn file_show_header_after_no_final_newline() {
     let args = json!({"revision": "@-", "paths": ["a.txt", "b.txt"]});
     assert_eq!(
         server.ok("jj_file_show", args).await,
-        "$ jj file show --ignore-working-copy --color=never --revision=@- \
+        "$ jj file show --ignore-working-copy --revision=@- \
          '--template=\"\\n==> \" ++ format_path(path) ++ \" <==\\n\"' -- a.txt b.txt\n\
          \n==> a.txt <==\nx\n==> b.txt <==\ny\n"
     );
@@ -369,10 +369,7 @@ async fn bookmark_list_ignores_default() {
         .await;
     let text = server.ok("jj_bookmark_list", json!({})).await;
     let first_line = text.lines().next().unwrap();
-    assert_eq!(
-        first_line,
-        "$ jj bookmark list --ignore-working-copy --color=never"
-    );
+    assert_eq!(first_line, "$ jj bookmark list --ignore-working-copy");
 }
 
 #[tokio::test]
@@ -382,9 +379,26 @@ async fn help() {
     let first_line = text.lines().next().unwrap();
     assert_eq!(
         first_line,
-        "$ jj help --ignore-working-copy --color=never --keyword=revsets"
+        "$ jj help --ignore-working-copy --keyword=revsets"
     );
     assert!(text.contains("String patterns"), "{text}");
+}
+
+/// `--color=never` is passed but not echoed. It wins over user config that
+/// forces colour on.
+#[tokio::test]
+async fn colour_is_off_even_if_config_forces_it() {
+    let dir = tempfile::tempdir().unwrap();
+    let config = dir.path().join("config.toml");
+    std::fs::write(&config, "ui.color = \"always\"\n").unwrap();
+    let mut command = server_command(repo());
+    command.env("JJ_CONFIG", &config);
+    let server = Server::spawn_command(command).await;
+
+    let text = server.ok("jj_log", json!({"revset": "main"})).await;
+    assert!(!text.contains('\x1b'), "{text:?}");
+    let first_line = text.lines().next().unwrap();
+    assert!(!first_line.contains("--color"), "{first_line}");
 }
 
 #[tokio::test]
@@ -455,9 +469,7 @@ async fn default_revision_fills_omitted_params() {
     let text = server
         .ok("jj_file_list", json!({"revision": "ci_update@origin"}))
         .await;
-    assert!(text.starts_with(
-        "$ jj file list --ignore-working-copy --color=never --revision=ci_update@origin\n"
-    ));
+    assert!(text.starts_with("$ jj file list --ignore-working-copy --revision=ci_update@origin\n"));
 }
 
 #[tokio::test]

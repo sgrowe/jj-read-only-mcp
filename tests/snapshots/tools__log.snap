@@ -2,7 +2,7 @@
 source: tests/tools.rs
 expression: text
 ---
-$ jj log --ignore-working-copy --color=never --revision=::main --limit=3
+$ jj log --ignore-working-copy --revision=::main --limit=3
 ◆  srvnxsys sgrowe@live.co.uk 2025-04-03 13:05:47 main v0.1.5 39bbaef2
 │  v0.1.5
 ◆  mpqnmrnp sgrowe@live.co.uk 2025-04-03 12:57:53 059b5829

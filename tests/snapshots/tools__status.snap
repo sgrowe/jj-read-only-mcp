@@ -2,7 +2,7 @@
 source: tests/tools.rs
 expression: text
 ---
-$ jj status --ignore-working-copy --color=never
+$ jj status --ignore-working-copy
 The working copy has no changes.
 Working copy  (@) : [change-id] [commit-id] (empty) (no description set)
 Parent commit (@-): srvnxsys 39bbaef2 main | v0.1.5

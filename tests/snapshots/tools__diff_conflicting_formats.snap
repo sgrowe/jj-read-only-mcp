@@ -2,10 +2,10 @@
 source: tests/tools.rs
 expression: text
 ---
-$ jj diff --ignore-working-copy --color=never --revisions=main --stat --summary
+$ jj diff --ignore-working-copy --revisions=main --stat --summary
 error: the argument '--stat' cannot be used with '--summary'
 
-Usage: jj diff --ignore-working-copy --color <WHEN> --revisions <REVSETS> --stat [FILESETS]...
+Usage: jj diff --ignore-working-copy --revisions <REVSETS> --stat [FILESETS]...
 
 For more information, try '--help'.
 exit code: 2

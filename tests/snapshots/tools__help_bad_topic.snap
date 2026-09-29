@@ -2,7 +2,7 @@
 source: tests/tools.rs
 expression: text
 ---
-$ jj help --ignore-working-copy --color=never --keyword=nope
+$ jj help --ignore-working-copy --keyword=nope
 error: invalid value 'nope' for '--keyword <KEYWORD>'
   [possible values: bookmarks, config, filesets, glossary, revsets, templates, tutorial]
 

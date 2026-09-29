@@ -2,6 +2,6 @@
 source: tests/tools.rs
 expression: text
 ---
-$ jj file list --ignore-working-copy --color=never --revision=ci_update@origin -- src/fixtures
+$ jj file list --ignore-working-copy --revision=ci_update@origin -- src/fixtures
 src/fixtures/01_args.md
 src/fixtures/02_casing_filters.md

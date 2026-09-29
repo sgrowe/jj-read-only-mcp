@@ -2,7 +2,7 @@
 source: tests/tools.rs
 expression: text
 ---
-$ jj show --ignore-working-copy --color=never --stat -- --version
+$ jj show --ignore-working-copy --stat -- --version
 Error: Failed to parse revset: Syntax error
 Caused by:  --> 1:1
   |

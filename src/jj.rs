@@ -9,7 +9,12 @@ use tokio::process::Command;
 
 /// Added after the subcommand on every call. `--ignore-working-copy` stops jj
 /// from snapshotting (or otherwise touching) the working copy.
-const GLOBAL_FLAGS: [&str; 2] = ["--ignore-working-copy", "--color=never"];
+const GLOBAL_FLAGS: [&str; 1] = ["--ignore-working-copy"];
+
+/// Passed to jj before the subcommand on every call, but not shown in the
+/// `$ jj` line. A flag, not `NO_COLOR`, because user config (`ui.color =
+/// "always"`) wins over `NO_COLOR`.
+const HIDDEN_FLAGS: [&str; 1] = ["--color=never"];
 
 /// A jj argv (without the leading `jj`), built up one flag at a time.
 pub struct Args(Vec<String>);
@@ -77,6 +82,7 @@ impl Args {
     /// (e.g. the call is cancelled), jj is killed.
     pub async fn run(self) -> CallToolResult {
         let output = Command::new("jj")
+            .args(HIDDEN_FLAGS)
             .args(&self.0)
             .stdin(Stdio::null())
             .kill_on_drop(true)
@@ -162,7 +168,7 @@ fn command_line(argv: &[String]) -> String {
 }
 
 /// Shell-quotes `arg` only if it needs it. Unlike `shlex`, this leaves `=`
-/// alone, so flags print as `--color=never` rather than `'--color=never'`.
+/// alone, so flags print as `--revision=main` rather than `'--revision=main'`.
 /// A leading `=` is still quoted, because zsh expands `=word`.
 fn quote(arg: &str) -> Cow<'_, str> {
     let safe = |c: char| c.is_ascii_alphanumeric() || "_-./=:@,+%".contains(c);
@@ -183,7 +189,7 @@ mod tests {
 
     #[test]
     fn quote_leaves_safe_args_alone() {
-        assert_eq!(quote("--color=never"), "--color=never");
+        assert_eq!(quote("--revision=main"), "--revision=main");
         assert_eq!(quote("main@origin"), "main@origin");
         assert_eq!(quote("src/a-b_c.rs"), "src/a-b_c.rs");
     }
@@ -221,7 +227,6 @@ mod tests {
                 "file",
                 "show",
                 "--ignore-working-copy",
-                "--color=never",
                 "--template=a b",
                 "--no-graph",
                 "--",

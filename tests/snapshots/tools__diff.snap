@@ -2,7 +2,7 @@
 source: tests/tools.rs
 expression: text
 ---
-$ jj diff --ignore-working-copy --color=never --revisions=main --git -- Cargo.toml Cargo.lock
+$ jj diff --ignore-working-copy --revisions=main --git -- Cargo.toml Cargo.lock
 diff --git a/Cargo.lock b/Cargo.lock
 index 2cbca7ffb5..452bb2da37 100644
 --- a/Cargo.lock

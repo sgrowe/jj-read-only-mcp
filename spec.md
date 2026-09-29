@@ -8,7 +8,7 @@ A local stdio MCP server (built with [rmcp](https://github.com/modelcontextproto
 
 ## Tools
 
-Every jj call gets `--ignore-working-copy --color=never` (so `@` is the last snapshot and may be stale). Value flags are passed as `--flag=value`. Positional args go after `--`.
+Every jj call gets `--ignore-working-copy` (so `@` is the last snapshot and may be stale) and `--color=never`. `--color=never` is passed before the subcommand and left out of the echoed `$ jj` line. It is a flag, not `NO_COLOR`, because user config (`ui.color = "always"`) wins over `NO_COLOR`. Value flags are passed as `--flag=value`. Positional args go after `--`.
 
 | Tool | Command |
 |---|---|
@@ -42,7 +42,7 @@ If the client cancels a call, the jj process is killed.
 ## Output
 
 ```
-$ <exact argv, shell-quoted>
+$ <argv, shell-quoted, without the hidden --color=never>
 <stdout>
 <stderr>
 ```
@@ -55,7 +55,7 @@ $ <exact argv, shell-quoted>
 Example:
 
 ```
-$ jj show --ignore-working-copy --color=never --stat -- zu
+$ jj show --ignore-working-copy --stat -- zu
 Commit ID: 24ca6c465e14cf8a68871f49f1baf4ae8040393c
 Change ID: zuxuusmnquwysxsnlxlyzuvmtwskzyru
 Author   : Sam Rowe <sgrowe@live.co.uk> (2 days ago)

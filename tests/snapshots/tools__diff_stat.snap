@@ -2,7 +2,7 @@
 source: tests/tools.rs
 expression: text
 ---
-$ jj diff --ignore-working-copy --color=never --revisions=main --stat
+$ jj diff --ignore-working-copy --revisions=main --stat
 .github/workflows/ci.yml | 5 +++++
 Cargo.lock               | 2 +-
 Cargo.toml               | 2 +-

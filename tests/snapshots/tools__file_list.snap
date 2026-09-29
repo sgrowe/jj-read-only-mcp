@@ -2,7 +2,7 @@
 source: tests/tools.rs
 expression: text
 ---
-$ jj file list --ignore-working-copy --color=never --revision=main
+$ jj file list --ignore-working-copy --revision=main
 .aider.conf.yml
 .github/workflows/ci.yml
 .gitignore

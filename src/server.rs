@@ -1,8 +1,6 @@
 //! The MCP server: its setup, the instructions it sends, and cancelling tool
 //! calls. The tools are in `tools`.
 
-use std::sync::Arc;
-
 use rmcp::handler::server::router::tool::ToolRouter;
 use rmcp::handler::server::tool::ToolCallContext;
 use rmcp::model::{
@@ -11,7 +9,6 @@ use rmcp::model::{
 };
 use rmcp::service::RequestContext;
 use rmcp::{ErrorData, RoleServer, ServerHandler, tool_handler};
-use tokio::sync::Mutex;
 
 use crate::tools;
 
@@ -22,17 +19,12 @@ pub const INSTRUCTIONS: &str = include_str!("instructions.md").trim_ascii_end();
 
 #[derive(Clone)]
 pub struct JjServer {
-    /// An async mutex, so `jj_set_default_revision` can hold it while it
-    /// checks the new value. Calls then see the default in the order they
-    /// were made, not the order their `jj log` checks finished.
-    pub(crate) default_revision: Arc<Mutex<Option<String>>>,
     tool_router: ToolRouter<Self>,
 }
 
 impl JjServer {
     pub fn new() -> Self {
         Self {
-            default_revision: Arc::default(),
             tool_router: tools::router(),
         }
     }

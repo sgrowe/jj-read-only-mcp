@@ -116,10 +116,8 @@ async fn flag_like_values_are_not_parsed_as_flags() {
 #[tokio::test]
 async fn unknown_params_are_rejected() {
     let server = Server::spawn().await;
-    server
-        .ok("jj_set_default_revision", json!({"revision": "main"}))
-        .await;
-    // `jj_show` takes `revset`, not `revision`. This must not show the default.
+    // `jj_show` takes `revset`, not `revision`, so the misnamed param is
+    // rejected.
     let text = server
         .err("jj_show", json!({"revision": "ci_update@origin"}))
         .await;
@@ -151,17 +149,25 @@ async fn does_not_write_to_the_repo() {
 
     let server = Server::spawn_in(dir).await;
     for (tool, args) in [
-        ("jj_set_default_revision", json!({"revision": "@-"})),
         ("jj_log", json!({"patch": true})),
-        ("jj_show", json!({})),
-        ("jj_diff", json!({})),
+        ("jj_show", json!({"revset": "@-"})),
+        ("jj_diff", json!({"revset": "@-"})),
         ("jj_diff_range", json!({"from": "root()", "to": "@"})),
         ("jj_interdiff", json!({"from": "@-", "to": "@"})),
-        ("jj_evolog", json!({"patch": true})),
-        ("jj_file_show", json!({"paths": ["a.txt"]})),
-        ("jj_file_list", json!({})),
-        ("jj_file_search", json!({"pattern": "one"})),
-        ("jj_file_annotate", json!({"path": "a.txt"})),
+        ("jj_evolog", json!({"revset": "@-", "patch": true})),
+        (
+            "jj_file_show",
+            json!({"revision": "@-", "paths": ["a.txt"]}),
+        ),
+        ("jj_file_list", json!({"revision": "@-"})),
+        (
+            "jj_file_search",
+            json!({"revision": "@-", "pattern": "one"}),
+        ),
+        (
+            "jj_file_annotate",
+            json!({"revision": "@-", "path": "a.txt"}),
+        ),
         ("jj_bookmark_list", json!({"all_remotes": true})),
         ("jj_list_remotes", json!({})),
         ("jj_help", json!({"topic": "revsets"})),

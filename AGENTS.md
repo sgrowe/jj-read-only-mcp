@@ -23,13 +23,11 @@ src/
     mod.rs             `router()`: adds up every tool's router
     <tool>.rs          one tool per file (e.g. `log.rs` is `jj_log`): its args, description and argv
     range_diff.rs      `jj_diff_range` and `jj_interdiff`, which share `RangeArgs`
-    default_revision.rs  `jj_set_default_revision`, and `resolve()` which fills in the default
 tests/integration/
   main.rs              the test crate root
   common.rs            test harness: the fixture repo, an MCP client, `assert_snap!`
   cli.rs               command-line tests
   server.rs            tests of the server as a whole, or of many tools at once
-  default_revision.rs  default revision tests
   <tool>.rs            the tests for `src/tools/<tool>.rs`
   snapshots/           insta snapshots, named `<test fn>.snap`
 ```

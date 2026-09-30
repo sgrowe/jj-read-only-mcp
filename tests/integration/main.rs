@@ -1,11 +1,11 @@
 //! Runs each tool against a clone of the fixture repo. Uses `main` (the same
-//! commit as tag `v0.1.5`) and `ci_update@origin`, never `@`. Tests that need
-//! their own repo make one in a temp dir.
+//! commit as tag `v0.1.5`) and `ci_update@origin`. `@` only appears redacted
+//! (in `jj_status`, and `jj_log`'s default view). Tests that need their own
+//! repo make one in a temp dir.
 
 mod bookmark_list;
 mod cli;
 mod common;
-mod default_revision;
 mod diff;
 mod evolog;
 mod file_annotate;

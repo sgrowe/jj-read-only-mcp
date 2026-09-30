@@ -13,8 +13,9 @@ use rmcp::{RoleClient, ServiceExt};
 
 pub const FIXTURE_URL: &str = "https://github.com/sgrowe/aider-script";
 
-/// Snapshots `$text`, redacting the working-copy IDs in `jj status` output
-/// (they are random for each clone).
+/// Snapshots `$text`, redacting the working copy's IDs (they are random for
+/// each clone) in `jj status` output, and the `@` line's IDs and timestamp in
+/// `jj log`'s default view.
 macro_rules! assert_snap {
     ($text:expr) => {{
         // Evaluated first: `with_settings!` runs its body in a closure, so
@@ -22,10 +23,18 @@ macro_rules! assert_snap {
         let text = $text;
         insta::with_settings!({
             prepend_module_to_snapshot => false,
-            filters => vec![(
-                r"(Working copy  \(@\) : )[a-z]+ [0-9a-f]+",
-                "$1[change-id] [commit-id]",
-            )],
+            filters => vec![
+                (
+                    r"(Working copy  \(@\) : )[a-z]+ [0-9a-f]+",
+                    "$1[change-id] [commit-id]",
+                ),
+                // `(?m)`, because the filter runs on the whole snapshot, so
+                // `^` would only match at its start.
+                (
+                    r"(?m)^(@  )[a-z]+ (\(no email set\)) \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} [0-9a-f]+",
+                    "$1[change-id] $2 [timestamp] [commit-id]",
+                ),
+            ],
         }, {
             insta::assert_snapshot!(text);
         })
@@ -42,6 +51,10 @@ fn tmp_dir() -> &'static Path {
 /// - A fake home, so jj keeps each repo's config (in `~/.config/jj/repos`)
 ///   there and not in the user's home.
 /// - `TZ=UTC`, so timestamps don't depend on the machine.
+///
+/// `jj()` and `server_command()` also remove `JJ_USER` and `JJ_EMAIL`, so the
+/// developer's own identity can't leak in. The fixture clone (made by `jj()`)
+/// then has no email on `@`, and `assert_snap!` can redact its line.
 fn test_env() -> [(&'static str, PathBuf); 4] {
     static HOME: OnceLock<PathBuf> = OnceLock::new();
     let home = HOME.get_or_init(|| {
@@ -67,6 +80,8 @@ pub fn jj(dir: &Path, args: &[&str]) -> String {
         .args(args)
         .current_dir(dir)
         .envs(test_env())
+        .env_remove("JJ_USER")
+        .env_remove("JJ_EMAIL")
         .output()
         .unwrap();
     assert!(
@@ -93,7 +108,11 @@ pub fn repo() -> &'static Path {
 /// A command that runs the server binary in `dir`.
 pub fn server_command(dir: &Path) -> tokio::process::Command {
     let mut command = tokio::process::Command::new(env!("CARGO_BIN_EXE_jj-read-only-mcp"));
-    command.current_dir(dir).envs(test_env());
+    command
+        .current_dir(dir)
+        .envs(test_env())
+        .env_remove("JJ_USER")
+        .env_remove("JJ_EMAIL");
     command
 }
 

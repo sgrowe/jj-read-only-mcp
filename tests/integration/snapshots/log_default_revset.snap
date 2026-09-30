@@ -1,0 +1,10 @@
+---
+source: tests/integration/log.rs
+expression: text
+---
+$ jj log --ignore-working-copy
+@  [change-id] (no email set) [timestamp] [commit-id]
+│  (empty) (no description set)
+◆  srvnxsys sgrowe@live.co.uk 2025-04-03 13:05:47 main v0.1.5 39bbaef2
+│  v0.1.5
+~

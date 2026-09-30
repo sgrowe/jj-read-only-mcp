@@ -13,6 +13,12 @@ async fn log() {
 }
 
 #[tokio::test]
+async fn log_default_revset() {
+    let server = Server::spawn().await;
+    assert_snap!(server.ok("jj_log", json!({})).await);
+}
+
+#[tokio::test]
 async fn log_patch() {
     let server = Server::spawn().await;
     let args = json!({"revset": "main", "no_graph": true, "patch": true});

@@ -2,7 +2,6 @@
 //! args, description and argv, and a router for it.
 
 mod bookmark_list;
-mod default_revision;
 mod diff;
 mod evolog;
 mod file_annotate;
@@ -17,7 +16,6 @@ mod show;
 mod status;
 
 use rmcp::handler::server::router::tool::ToolRouter;
-use rmcp::model::CallToolResult;
 
 use crate::server::JjServer;
 
@@ -36,11 +34,7 @@ pub(crate) fn router() -> ToolRouter<JjServer> {
         + JjServer::list_remotes_router()
         + JjServer::help_router()
         + JjServer::status_router()
-        + JjServer::default_revision_router()
 }
 
 // Every args struct denies unknown fields, so a misnamed param (e.g.
-// `revision` where the tool takes `revset`) is an error, not silently
-// replaced by the default revision.
-
-type ToolResult = Result<CallToolResult, CallToolResult>;
+// `limits`) is an error, not silently ignored.

@@ -12,7 +12,7 @@ Every jj call gets `--ignore-working-copy` (so `@` is the last snapshot and may 
 
 | Tool | Command |
 |---|---|
-| `jj_log` | `jj log --revision=$revset [--template=] [--limit=] [--no-graph] [--reversed] [--patch --git] [--summary \| --stat]` |
+| `jj_log` | `jj log [--revision=$revset] [--template=] [--limit=] [--no-graph] [--reversed] [--patch --git] [--summary \| --stat]` |
 | `jj_show` | `jj show --stat [--template=] -- $revset` |
 | `jj_diff` | `jj diff --revisions=$revset [--git \| --stat \| --summary \| --name-only] [--context=] [-- $paths...]` |
 | `jj_diff_range` | `jj diff --from=$from --to=$to [same format flags] [-- $paths...]` |
@@ -26,19 +26,14 @@ Every jj call gets `--ignore-working-copy` (so `@` is the last snapshot and may 
 | `jj_list_remotes` | `jj git remote list` |
 | `jj_help` | `jj help --keyword=$help_topic` |
 | `jj_status` | `jj status` |
-| `jj_set_default_revision` | Not a jj command: sets or clears the default revision (see below) |
 
 Diffs are always git-formatted: `--git` is added unless `stat`, `summary` or `name_only` is set. These three are mutually exclusive, and jj errors if you combine them.
 
-Unknown params are rejected (the schemas set `additionalProperties: false`), so a misnamed param such as `revision` on a tool that takes `revset` is an error rather than silently falling back to the default revision.
+Unknown params are rejected (the schemas set `additionalProperties: false`), so a misnamed param such as `revision` on a tool that takes `revset` is an error rather than silently ignored.
 
-Every tool is annotated `readOnlyHint: true, openWorldHint: false`, except `jj_set_default_revision`, which is `readOnlyHint: false, destructiveHint: false, idempotentHint: true`.
+Every tool is annotated `readOnlyHint: true, openWorldHint: false`.
 
 If the client cancels a call, the jj process is killed.
-
-### Default revision
-
-`jj_set_default_revision($revision)` stores the string for this server session (in memory, not persisted). It fills any omitted `$revset`/`$revision` param. It never fills `from`/`to`, bookmark filters or help topics. On set, it runs `jj log --no-graph --revision=$revision` and returns the output. The value is stored only if jj succeeds. Passing null/empty clears it. If a tool needs a revision, none is given and no default is set, the tool returns an error without running jj. Setting takes a lock that is held until its `jj log` check finishes, so calls see the default in the order they were made.
 
 ## Output
 
@@ -83,6 +78,7 @@ app/permissions.ts     | 45 +++++++++++++++++++++++++++++++++++----------
 ## Behaviour
 
 - Uses the user's jj config (aliases, templates). Output colour is forced off.
+- `jj_log` without `revset` passes no `--revision`, so jj uses `revsets.log`.
 - `jj_file_show` uses its header template only when given more than one path and no `template`. It prints `==> path <==` before each file, starting with a newline so the header is on its own line after a file with no final newline. With one path (even a directory or glob matching several files), no `--template` is passed, so the user's `templates.file_show` applies.
 - `jj_list_remotes` prints remote URLs unchanged (as git resolves them), so a credential in a URL (e.g. `https://user:token@host/...`) is shown to the agent.
 - At startup, runs `jj root`. If cwd is not a jj repo, exits with jj's error.
@@ -98,7 +94,7 @@ app/permissions.ts     | 45 +++++++++++++++++++++++++++++++++++----------
 ## Testing
 
 - Integration tests clone `https://github.com/sgrowe/aider-script` (abandoned, never changes) once per run into cargo's temp dir. Each test spawns the server binary with the rmcp client over stdio.
-- Tests run with an empty `JJ_CONFIG`, `TZ=UTC` and a fake `HOME` (so jj's per-repo config goes in cargo's temp dir, not the user's home), and use `insta` snapshots. They use stable refs (`main`, which is also tag `v0.1.5`, and the untracked `ci_update@origin`), never `@`.
+- Tests run with an empty `JJ_CONFIG`, `TZ=UTC`, a fake `HOME` (so jj's per-repo config goes in cargo's temp dir, not the user's home) and no `JJ_USER`/`JJ_EMAIL` (so the fixture clone's `@` has no email), and use `insta` snapshots. They use stable refs (`main`, which is also tag `v0.1.5`, and the untracked `ci_update@origin`). `@` only appears redacted: the `jj_status` snapshot, and the `jj_log` default-view snapshot, which redacts the `@` line.
 - `token_counts` snapshots the approximate token cost of the instructions and each tool's `{name, description, inputSchema}` (tiktoken `o200k_base`, annotations excluded). Use it to compare changes, not as exact Claude counts.
 - `does_not_write_to_the_repo` runs every tool against a colocated repo with an unsnapshotted working-copy change, and checks the op log is unchanged.
 - CI runs the tests against a matrix of jj versions (currently `0.45.1`), installed from GitHub release binaries. The Rust toolchain is pinned in `rust-toolchain.toml`.

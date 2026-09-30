@@ -5,7 +5,7 @@ expression: text
 [
   {
     "name": "jj_bookmark_list",
-    "description": "List bookmarks and their targets (`jj bookmark list`). The default revision is not used here.",
+    "description": "List bookmarks and their targets (`jj bookmark list`).",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
@@ -24,7 +24,7 @@ expression: text
           "type": "array"
         },
         "revset": {
-          "description": "Only show bookmarks pointing at commits in this revset. The default\nrevision is not used here.",
+          "description": "Only show bookmarks pointing at commits in this revset.",
           "type": [
             "string",
             "null"
@@ -75,11 +75,8 @@ expression: text
           "type": "array"
         },
         "revset": {
-          "description": "Revset whose changes to show. Several revisions are shown as one\ncombined diff. Defaults to the default revision.",
-          "type": [
-            "string",
-            "null"
-          ]
+          "description": "Revset whose changes to show. Several revisions are shown as one\ncombined diff.",
+          "type": "string"
         },
         "stat": {
           "default": false,
@@ -92,6 +89,9 @@ expression: text
           "type": "boolean"
         }
       },
+      "required": [
+        "revset"
+      ],
       "type": "object"
     },
     "annotations": {
@@ -101,7 +101,7 @@ expression: text
   },
   {
     "name": "jj_diff_range",
-    "description": "Show the difference between the trees of two revisions (`jj diff --from --to`), in git format unless `stat`, `summary` or `name_only` is set. `from` and `to` are required: the default revision is not used.",
+    "description": "Show the difference between the trees of two revisions (`jj diff --from --to`), in git format unless `stat`, `summary` or `name_only` is set.",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
@@ -116,7 +116,7 @@ expression: text
           ]
         },
         "from": {
-          "description": "Revision to diff from. Required: the default revision is not used.",
+          "description": "Revision to diff from.",
           "type": "string"
         },
         "name_only": {
@@ -143,7 +143,7 @@ expression: text
           "type": "boolean"
         },
         "to": {
-          "description": "Revision to diff to. Required: the default revision is not used.",
+          "description": "Revision to diff to.",
           "type": "string"
         }
       },
@@ -185,11 +185,8 @@ expression: text
           "type": "boolean"
         },
         "revset": {
-          "description": "Revset whose history to show. Defaults to the default revision.",
-          "type": [
-            "string",
-            "null"
-          ]
+          "description": "Revset whose history to show.",
+          "type": "string"
         },
         "template": {
           "description": "Template for each version. Keywords are on `commit`, e.g.\n`commit.commit_id()`, not `commit_id`.",
@@ -199,6 +196,9 @@ expression: text
           ]
         }
       },
+      "required": [
+        "revset"
+      ],
       "type": "object"
     },
     "annotations": {
@@ -218,11 +218,8 @@ expression: text
           "type": "string"
         },
         "revision": {
-          "description": "Revision to annotate the file at. Defaults to the default revision.",
-          "type": [
-            "string",
-            "null"
-          ]
+          "description": "Revision to annotate the file at.",
+          "type": "string"
         },
         "template": {
           "description": "Template for each line.",
@@ -233,6 +230,7 @@ expression: text
         }
       },
       "required": [
+        "revision",
         "path"
       ],
       "type": "object"
@@ -258,11 +256,8 @@ expression: text
           "type": "array"
         },
         "revision": {
-          "description": "Revision to list the files at. Defaults to the default revision.",
-          "type": [
-            "string",
-            "null"
-          ]
+          "description": "Revision to list the files at.",
+          "type": "string"
         },
         "template": {
           "description": "Template for each file.",
@@ -272,6 +267,9 @@ expression: text
           ]
         }
       },
+      "required": [
+        "revision"
+      ],
       "type": "object"
     },
     "annotations": {
@@ -320,14 +318,12 @@ expression: text
           "type": "string"
         },
         "revision": {
-          "description": "Revision to search at. Defaults to the default revision.",
-          "type": [
-            "string",
-            "null"
-          ]
+          "description": "Revision to search at.",
+          "type": "string"
         }
       },
       "required": [
+        "revision",
         "pattern"
       ],
       "type": "object"
@@ -352,11 +348,8 @@ expression: text
           "type": "array"
         },
         "revision": {
-          "description": "Revision to read the files at. Defaults to the default revision.",
-          "type": [
-            "string",
-            "null"
-          ]
+          "description": "Revision to read the files at.",
+          "type": "string"
         },
         "template": {
           "description": "Template for each file's header.",
@@ -367,6 +360,7 @@ expression: text
         }
       },
       "required": [
+        "revision",
         "paths"
       ],
       "type": "object"
@@ -400,7 +394,7 @@ expression: text
   },
   {
     "name": "jj_interdiff",
-    "description": "Compare the changes made by two revisions (`jj interdiff --from --to`): the difference between their patches, not their trees. Useful to see what changed between two versions of a change, e.g. across a rebase. In git format unless `stat`, `summary` or `name_only` is set. `from` and `to` are required: the default revision is not used.",
+    "description": "Compare the changes made by two revisions (`jj interdiff --from --to`): the difference between their patches, not their trees. Useful to see what changed between two versions of a change, e.g. across a rebase. In git format unless `stat`, `summary` or `name_only` is set.",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
@@ -415,7 +409,7 @@ expression: text
           ]
         },
         "from": {
-          "description": "Revision to diff from. Required: the default revision is not used.",
+          "description": "Revision to diff from.",
           "type": "string"
         },
         "name_only": {
@@ -442,7 +436,7 @@ expression: text
           "type": "boolean"
         },
         "to": {
-          "description": "Revision to diff to. Required: the default revision is not used.",
+          "description": "Revision to diff to.",
           "type": "string"
         }
       },
@@ -501,7 +495,7 @@ expression: text
           "type": "boolean"
         },
         "revset": {
-          "description": "Revset to show. Defaults to the default revision.",
+          "description": "Revset to show. Defaults to jj's `revsets.log` config.",
           "type": [
             "string",
             "null"
@@ -533,30 +527,6 @@ expression: text
     }
   },
   {
-    "name": "jj_set_default_revision",
-    "description": "Set the revision used when a tool's `revset`/`revision` param is omitted. It is kept in memory for this session only. Runs `jj log` on the revision and returns its output. The default is only changed if that succeeds. Pass null or an empty string to clear the default.",
-    "inputSchema": {
-      "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "additionalProperties": false,
-      "properties": {
-        "revision": {
-          "description": "Revision to use when a tool's `revset`/`revision` is omitted. Null or\nempty clears the default.",
-          "type": [
-            "string",
-            "null"
-          ]
-        }
-      },
-      "type": "object"
-    },
-    "annotations": {
-      "readOnlyHint": false,
-      "destructiveHint": false,
-      "idempotentHint": true,
-      "openWorldHint": false
-    }
-  },
-  {
     "name": "jj_show",
     "description": "Show a revision's description and a diffstat of its changed files (`jj show --stat`). Use jj_diff for the patch.",
     "inputSchema": {
@@ -564,11 +534,8 @@ expression: text
       "additionalProperties": false,
       "properties": {
         "revset": {
-          "description": "Revset to show. Defaults to the default revision.",
-          "type": [
-            "string",
-            "null"
-          ]
+          "description": "Revset to show.",
+          "type": "string"
         },
         "template": {
           "description": "Template for the commit header.",
@@ -578,6 +545,9 @@ expression: text
           ]
         }
       },
+      "required": [
+        "revset"
+      ],
       "type": "object"
     },
     "annotations": {

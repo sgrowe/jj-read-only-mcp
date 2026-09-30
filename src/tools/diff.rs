@@ -1,8 +1,8 @@
 use rmcp::handler::server::wrapper::Parameters;
+use rmcp::model::CallToolResult;
 use rmcp::{schemars, tool, tool_router};
 use serde::Deserialize;
 
-use super::ToolResult;
 use crate::jj::Args;
 use crate::server::JjServer;
 
@@ -14,8 +14,8 @@ use crate::server::JjServer;
 #[serde(deny_unknown_fields)]
 pub struct DiffArgs {
     /// Revset whose changes to show. Several revisions are shown as one
-    /// combined diff. Defaults to the default revision.
-    revset: Option<String>,
+    /// combined diff.
+    revset: String,
     /// Only show changes to these filesets.
     #[serde(default)]
     paths: Vec<String>,
@@ -43,11 +43,10 @@ impl JjServer {
         output small.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
-    async fn jj_diff(&self, Parameters(args): Parameters<DiffArgs>) -> ToolResult {
-        let revset = self.resolve(args.revset, "revset").await?;
-        let cmd = Args::new(&["diff"]).value("--revisions", revset);
+    async fn jj_diff(&self, Parameters(args): Parameters<DiffArgs>) -> CallToolResult {
+        let cmd = Args::new(&["diff"]).value("--revisions", args.revset);
         let cmd = diff_format(cmd, args.stat, args.summary, args.name_only, args.context);
-        Ok(cmd.positional(args.paths).run().await)
+        cmd.positional(args.paths).run().await
     }
 }
 

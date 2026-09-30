@@ -21,17 +21,3 @@ async fn bookmark_list_revset() {
     let args = json!({"revset": "main", "template": "name ++ \"\\n\""});
     assert_snap!(server.ok("jj_bookmark_list", args).await);
 }
-
-#[tokio::test]
-async fn bookmark_list_ignores_default() {
-    let server = Server::spawn().await;
-    server
-        .ok(
-            "jj_set_default_revision",
-            json!({"revision": "ci_update@origin"}),
-        )
-        .await;
-    let text = server.ok("jj_bookmark_list", json!({})).await;
-    let first_line = text.lines().next().unwrap();
-    assert_eq!(first_line, "$ jj bookmark list --ignore-working-copy");
-}

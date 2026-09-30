@@ -1,8 +1,8 @@
 use rmcp::handler::server::wrapper::Parameters;
+use rmcp::model::CallToolResult;
 use rmcp::{schemars, tool, tool_router};
 use serde::Deserialize;
 
-use super::ToolResult;
 use crate::jj::Args;
 use crate::server::JjServer;
 
@@ -14,8 +14,8 @@ const FILE_SHOW_TEMPLATE: &str = r#""\n==> " ++ format_path(path) ++ " <==\n""#;
 #[derive(Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct FileShowArgs {
-    /// Revision to read the files at. Defaults to the default revision.
-    revision: Option<String>,
+    /// Revision to read the files at.
+    revision: String,
     /// Filesets to print.
     paths: Vec<String>,
     /// Template for each file's header.
@@ -30,17 +30,16 @@ impl JjServer {
         `template` is set.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
-    async fn jj_file_show(&self, Parameters(args): Parameters<FileShowArgs>) -> ToolResult {
-        let revision = self.resolve(args.revision, "revision").await?;
+    async fn jj_file_show(&self, Parameters(args): Parameters<FileShowArgs>) -> CallToolResult {
         let template = args
             .template
             .as_deref()
             .or((args.paths.len() > 1).then_some(FILE_SHOW_TEMPLATE));
-        Ok(Args::new(&["file", "show"])
-            .value("--revision", revision)
+        Args::new(&["file", "show"])
+            .value("--revision", args.revision)
             .opt("--template", template)
             .positional(args.paths)
             .run()
-            .await)
+            .await
     }
 }

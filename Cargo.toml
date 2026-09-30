@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 rmcp = { version = "3.5.0", features = ["server", "transport-io"] }
 serde = { version = "1.0.229", features = ["derive"] }
-tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread", "process", "io-std", "sync"] }
+tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread", "process", "io-std"] }
 
 [dev-dependencies]
 insta = { version = "1.48.0", features = ["filters"] }

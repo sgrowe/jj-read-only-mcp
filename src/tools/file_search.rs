@@ -1,10 +1,10 @@
 use std::fmt;
 
 use rmcp::handler::server::wrapper::Parameters;
+use rmcp::model::CallToolResult;
 use rmcp::{schemars, tool, tool_router};
 use serde::{Deserialize, Serialize};
 
-use super::ToolResult;
 use crate::jj::Args;
 use crate::server::JjServer;
 
@@ -34,8 +34,8 @@ impl fmt::Display for PatternKind {
 #[derive(Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct FileSearchArgs {
-    /// Revision to search at. Defaults to the default revision.
-    revision: Option<String>,
+    /// Revision to search at.
+    revision: String,
     /// Text to match against each line, used as-is. Set the kind with `kind`,
     /// not a `kind:` prefix.
     pattern: String,
@@ -62,11 +62,10 @@ impl JjServer {
         matching lines with their line numbers, or only file names if `name_only` is set.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
-    async fn jj_file_search(&self, Parameters(args): Parameters<FileSearchArgs>) -> ToolResult {
-        let revision = self.resolve(args.revision, "revision").await?;
+    async fn jj_file_search(&self, Parameters(args): Parameters<FileSearchArgs>) -> CallToolResult {
         let case = if args.ignore_case { "-i" } else { "" };
-        Ok(Args::new(&["file", "search"])
-            .value("--revision", revision)
+        Args::new(&["file", "search"])
+            .value("--revision", args.revision)
             .value("--pattern", format!("{}{case}:{}", args.kind, args.pattern))
             .arg(if args.name_only {
                 "--name-only"
@@ -75,6 +74,6 @@ impl JjServer {
             })
             .positional(args.paths)
             .run()
-            .await)
+            .await
     }
 }

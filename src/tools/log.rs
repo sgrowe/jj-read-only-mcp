@@ -1,8 +1,8 @@
 use rmcp::handler::server::wrapper::Parameters;
+use rmcp::model::CallToolResult;
 use rmcp::{schemars, tool, tool_router};
 use serde::Deserialize;
 
-use super::ToolResult;
 use crate::jj::Args;
 use crate::server::JjServer;
 
@@ -13,7 +13,7 @@ use crate::server::JjServer;
     reason = "each bool is one jj flag in the tool's schema"
 )]
 pub struct LogArgs {
-    /// Revset to show. Defaults to the default revision.
+    /// Revset to show. Defaults to jj's `revsets.log` config.
     revset: Option<String>,
     /// Template for each commit.
     template: Option<String>,
@@ -44,10 +44,9 @@ impl JjServer {
         is not snapshotted.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
-    async fn jj_log(&self, Parameters(args): Parameters<LogArgs>) -> ToolResult {
-        let revset = self.resolve(args.revset, "revset").await?;
-        Ok(Args::new(&["log"])
-            .value("--revision", revset)
+    async fn jj_log(&self, Parameters(args): Parameters<LogArgs>) -> CallToolResult {
+        Args::new(&["log"])
+            .opt("--revision", args.revset)
             .opt("--template", args.template)
             .opt("--limit", args.limit)
             .flag(args.no_graph, "--no-graph")
@@ -57,6 +56,6 @@ impl JjServer {
             .flag(args.summary, "--summary")
             .flag(args.stat, "--stat")
             .run()
-            .await)
+            .await
     }
 }

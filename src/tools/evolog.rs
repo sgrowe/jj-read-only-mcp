@@ -1,16 +1,16 @@
 use rmcp::handler::server::wrapper::Parameters;
+use rmcp::model::CallToolResult;
 use rmcp::{schemars, tool, tool_router};
 use serde::Deserialize;
 
-use super::ToolResult;
 use crate::jj::Args;
 use crate::server::JjServer;
 
 #[derive(Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct EvologArgs {
-    /// Revset whose history to show. Defaults to the default revision.
-    revset: Option<String>,
+    /// Revset whose history to show.
+    revset: String,
     /// Show at most this many versions.
     limit: Option<u32>,
     /// Show a flat list instead of a graph.
@@ -31,16 +31,15 @@ impl JjServer {
         rewrites such as amends and rebases.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
-    async fn jj_evolog(&self, Parameters(args): Parameters<EvologArgs>) -> ToolResult {
-        let revset = self.resolve(args.revset, "revset").await?;
-        Ok(Args::new(&["evolog"])
-            .value("--revisions", revset)
+    async fn jj_evolog(&self, Parameters(args): Parameters<EvologArgs>) -> CallToolResult {
+        Args::new(&["evolog"])
+            .value("--revisions", args.revset)
             .opt("--limit", args.limit)
             .flag(args.no_graph, "--no-graph")
             .flag(args.patch, "--patch")
             .flag(args.patch, "--git")
             .opt("--template", args.template)
             .run()
-            .await)
+            .await
     }
 }

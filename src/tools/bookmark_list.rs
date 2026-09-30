@@ -9,8 +9,7 @@ use crate::server::JjServer;
 #[derive(Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct BookmarkListArgs {
-    /// Only show bookmarks pointing at commits in this revset. The default
-    /// revision is not used here.
+    /// Only show bookmarks pointing at commits in this revset.
     revset: Option<String>,
     /// Also show remote bookmarks, including untracked ones and ones in sync
     /// with their local bookmark.
@@ -27,8 +26,7 @@ pub struct BookmarkListArgs {
 #[tool_router(router = bookmark_list_router, vis = "pub(super)")]
 impl JjServer {
     #[tool(
-        description = "List bookmarks and their targets (`jj bookmark list`). The \
-        default revision is not used here.",
+        description = "List bookmarks and their targets (`jj bookmark list`).",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn jj_bookmark_list(

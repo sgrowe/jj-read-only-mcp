@@ -12,9 +12,9 @@ use crate::server::JjServer;
 #[derive(Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct RangeArgs {
-    /// Revision to diff from. Required: the default revision is not used.
+    /// Revision to diff from.
     from: String,
-    /// Revision to diff to. Required: the default revision is not used.
+    /// Revision to diff to.
     to: String,
     /// Only show changes to these filesets.
     #[serde(default)]
@@ -39,8 +39,7 @@ pub struct RangeArgs {
 impl JjServer {
     #[tool(
         description = "Show the difference between the trees of two revisions (`jj diff \
-        --from --to`), in git format unless `stat`, `summary` or `name_only` is set. \
-        `from` and `to` are required: the default revision is not used.",
+        --from --to`), in git format unless `stat`, `summary` or `name_only` is set.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn jj_diff_range(&self, Parameters(args): Parameters<RangeArgs>) -> CallToolResult {
@@ -51,8 +50,7 @@ impl JjServer {
         description = "Compare the changes made by two revisions (`jj interdiff --from \
         --to`): the difference between their patches, not their trees. Useful to see what \
         changed between two versions of a change, e.g. across a rebase. In git format \
-        unless `stat`, `summary` or `name_only` is set. `from` and `to` are required: the \
-        default revision is not used.",
+        unless `stat`, `summary` or `name_only` is set.",
         annotations(read_only_hint = true, open_world_hint = false)
     )]
     async fn jj_interdiff(&self, Parameters(args): Parameters<RangeArgs>) -> CallToolResult {

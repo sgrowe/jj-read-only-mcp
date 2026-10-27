@@ -97,5 +97,5 @@ app/permissions.ts     | 45 +++++++++++++++++++++++++++++++++++----------
 - Tests run with an empty `JJ_CONFIG`, `TZ=UTC`, a fake `HOME` (so jj's per-repo config goes in cargo's temp dir, not the user's home) and no `JJ_USER`/`JJ_EMAIL` (so the fixture clone's `@` has no email), and use `insta` snapshots. They use stable refs (`main`, which is also tag `v0.1.5`, and the untracked `ci_update@origin`). `@` only appears redacted: the `jj_status` snapshot, and the `jj_log` default-view snapshot, which redacts the `@` line.
 - `token_counts` snapshots the approximate token cost of the instructions and each tool's `{name, description, inputSchema}` (tiktoken `o200k_base`, annotations excluded). Use it to compare changes, not as exact Claude counts.
 - `does_not_write_to_the_repo` runs every tool against a colocated repo with an unsnapshotted working-copy change, and checks the op log is unchanged.
-- CI runs the tests against a matrix of jj versions (currently `0.45.1`), installed from GitHub release binaries. The Rust toolchain is pinned in `rust-toolchain.toml`.
+- CI runs the tests against a matrix of jj versions (currently `0.45.1` and `0.46.0`), installed from GitHub release binaries. The Rust toolchain is pinned in `rust-toolchain.toml`.
 - Lints: clippy `pedantic`, and `unsafe_code = "forbid"`.

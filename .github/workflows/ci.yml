@@ -12,15 +12,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        jj: ["0.45.1"]
+        jj: ["0.45.1", "0.46.0"]
     steps:
       - uses: actions/checkout@v7
 
-      # Installs the toolchain and components in rust-toolchain.toml.
-      - name: Install Rust
-        run: rustup toolchain install
-
+      # Runs alongside the Rust steps below. Its PATH change only applies after
+      # the `wait` step.
       - name: Install jj ${{ matrix.jj }}
+        id: install-jj
+        background: true
         env:
           VER: ${{ matrix.jj }}
         run: |
@@ -29,7 +29,15 @@ jobs:
             | tar -xz -C "$HOME/.local/bin" ./jj
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
-      - run: jj --version
+      # Installs the toolchain and components in rust-toolchain.toml.
+      - name: Install Rust
+        run: rustup toolchain install
+
       - run: cargo fmt --check
       - run: cargo clippy --all-targets -- -D warnings
+
+      - name: Wait for jj
+        wait: install-jj
+
+      - run: jj --version
       - run: cargo test
